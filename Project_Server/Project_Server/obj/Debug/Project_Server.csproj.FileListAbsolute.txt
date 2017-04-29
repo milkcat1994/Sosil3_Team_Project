@@ -1,0 +1,2 @@
+D:\school\3\Linux\프로젝트\Project_Server\Project_Server\bin\Debug\Project_Server.exe.config
+D:\school\3\Linux\Project\Project_Server\Project_Server\bin\Debug\Project_Server.exe.config
