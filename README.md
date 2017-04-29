@@ -8,7 +8,7 @@
 # Team Project Subject
 -Project Manager for Busy student
 
-#Project Index
+# Project Index
 -Alarm Function
 -File_Transfer Function
 -Calendar Function
