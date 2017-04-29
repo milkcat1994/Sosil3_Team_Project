@@ -1,2 +1,10 @@
 D:\school\3\Linux\프로젝트\Project_Server\Project_Server\bin\Debug\Project_Server.exe.config
 D:\school\3\Linux\Project\Project_Server\Project_Server\bin\Debug\Project_Server.exe.config
+D:\school\3\Linux\Project\Project_Server\Project_Server\bin\Debug\Project_Server.exe
+D:\school\3\Linux\Project\Project_Server\Project_Server\bin\Debug\Project_Server.pdb
+D:\school\3\Linux\Project\Project_Server\Project_Server\obj\Debug\Project_Server.csprojResolveAssemblyReference.cache
+D:\school\3\Linux\Project\Project_Server\Project_Server\obj\Debug\Project_Server.Form_Server.resources
+D:\school\3\Linux\Project\Project_Server\Project_Server\obj\Debug\Project_Server.Properties.Resources.resources
+D:\school\3\Linux\Project\Project_Server\Project_Server\obj\Debug\Project_Server.csproj.GenerateResource.Cache
+D:\school\3\Linux\Project\Project_Server\Project_Server\obj\Debug\Project_Server.exe
+D:\school\3\Linux\Project\Project_Server\Project_Server\obj\Debug\Project_Server.pdb

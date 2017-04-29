@@ -10,11 +10,16 @@ using System.Windows.Forms;
 
 namespace Project_Server
 {
-    public partial class Form1 : Form
+    public partial class Form_Server : Form
     {
-        public Form1()
+        public Form_Server()
         {
             InitializeComponent();
+        }
+
+        private void Form_Server_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }
