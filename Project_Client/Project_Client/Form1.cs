@@ -40,7 +40,6 @@ namespace Project_Client
         //Define Thread Object
         private Thread m_Thread = null;
 
-
         public Form_Client()
         {
             InitializeComponent();
@@ -61,14 +60,35 @@ namespace Project_Client
             // 각 파일별로 ListViewItem객체를 하나씩 만듦
             // 파일명, 사이즈, 날짜 정보를 추가
             ListViewItem lvi = new ListViewItem("test1");
-            lvi.SubItems.Add("123");
+            lvi.SubItems.Add("1");
             lvi.SubItems.Add("1234-12-12");
             lvi.ImageIndex = 0;
             
             listView_Project_1.Items.Add(lvi);
 
             lvi = new ListViewItem("test2");
-            lvi.SubItems.Add("321");
+            lvi.SubItems.Add("2");
+            lvi.SubItems.Add("4321-21-21");
+            lvi.ImageIndex = 0;
+            // ListViewItem객체를 Items 속성에 추가
+            listView_Project_1.Items.Add(lvi);
+
+
+            lvi = new ListViewItem("test3");
+            lvi.SubItems.Add("3");
+            lvi.SubItems.Add("4321-21-21");
+            lvi.ImageIndex = 0;
+            // ListViewItem객체를 Items 속성에 추가
+            listView_Project_1.Items.Add(lvi);
+            lvi = new ListViewItem("test5");
+            lvi.SubItems.Add("5");
+            lvi.SubItems.Add("4321-21-21");
+            lvi.ImageIndex = 0;
+            // ListViewItem객체를 Items 속성에 추가
+            listView_Project_1.Items.Add(lvi);
+
+            lvi = new ListViewItem("test6");
+            lvi.SubItems.Add("6");
             lvi.SubItems.Add("4321-21-21");
             lvi.ImageIndex = 0;
             // ListViewItem객체를 Items 속성에 추가
@@ -76,10 +96,10 @@ namespace Project_Client
 
             // 컬럼명과 컬럼사이즈 지정
             listView_Project_1.Columns.Add("Project Name", 30, HorizontalAlignment.Left);
-            listView_Project_1.Columns.Add("Size", 20, HorizontalAlignment.Left);
+            listView_Project_1.Columns.Add("Project Number", 5, HorizontalAlignment.Left);
             listView_Project_1.Columns.Add("Date", 10, HorizontalAlignment.Left);
 
-            // 리스뷰를 Refresh하여 보여줌
+            // 리스트뷰를 Refresh하여 보여줌
             listView_Project_1.EndUpdate();
             
         }
@@ -237,7 +257,7 @@ namespace Project_Client
             //For SQL connection _ Path is Server DB Path
             SqlConnection sqlCon = new SqlConnection(@"Data Source = (LocalDB)\MSSQLLocalDB; AttachDbFilename = D:\school\3\Linux\Project\Project_Server\Server_DB.mdf; Integrated Security = True; Connect Timeout = 30");
             //If you want to select attribute in Server DB
-            string query = "select * from Login where Id ='" + textBox_ID.Text.Trim() + "'and password = '" + textBox_PW.Text.Trim() + "'";
+            string query = "select * from USER where ID ='" + textBox_ID.Text.Trim() + "'and PW = '" + textBox_PW.Text.Trim() + "'";
             //Adapter between query and DB
             SqlDataAdapter sqla = new SqlDataAdapter(query, sqlCon);
             //Make a DataTable Object
@@ -275,6 +295,37 @@ namespace Project_Client
             textBox_Port.Text = "7111";
             this.ClientSize = new System.Drawing.Size(500, 460);
             //this.ClientSize = new System.Drawing.Size(300, 230);
+        }
+
+        private void button_Create_Project_Click(object sender, EventArgs e)
+        {
+            //새로운 폼을 띄워 함께 진행할 사람을 추가 시키는 형태로 작성할 것.
+            //힘들면 기존 폼을 변형 시켜 할것. <-- 비추천
+            //필요한 정보 : Project Name, 참여자 ID, P_start_Date, P_end_Date
+            //자동으로 정해야 하는 정보 : Pno -> 현재 최대 Pno에서 +1  <-- Arrary List를
+            //이용하여 유동적인 Count이용할것.
+            //Ppath의 경우 Project Name을 이용하여 서버의 Default Path + Project Name으로
+            //정하여 서버에서 폴더를 생성해 줄것.
+        }
+
+        private void button_Project_Open_Click(object sender, EventArgs e)
+        {
+            //save Selected item's index
+            var index_Sel_Columns = listView_Project_1.SelectedIndices;
+
+            int index = index_Sel_Columns[0];
+
+            //get name
+            string Project_Name = listView_Project_1.Items[index].SubItems[0].Text;
+            string Project_Number = listView_Project_1.Items[index].SubItems[1].Text;
+            MessageBox.Show("Project_name : " + Project_Name.Trim() + "\nProject_Number : " + Project_Number.Trim());
+            //sql을 이용한 해당 Project Name과 Project Number을 이용해서 해당 Project Path찾기
+            //string query = "select Ppath from PROJECT where Pname ='" + Project_Name.Trim() + "'and Pno = '" + Project_Number.Text.Trim() + "'";
+            //Ppath를 서버로 전송 해당 경로에 있는 파일을 모두 불러와서 도식(ListView_Tile)
+            //도식이후 파일 타입 : txt, jpeg, zip, 등등을 파악하여 imageList다르게 설정,
+            //다운로드 버튼은 모두 작동, Double Click의 경우 txt일경우에 메모장을 띄울 수 있나?
+            //이미지도 Double Click의 경우 다르게 해보던지요..
+                        
         }
     }
 }

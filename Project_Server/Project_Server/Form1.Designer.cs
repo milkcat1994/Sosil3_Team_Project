@@ -36,15 +36,15 @@
             this.label_Port = new System.Windows.Forms.Label();
             this.button_Server_Start = new System.Windows.Forms.Button();
             this.panel_Server_Log = new System.Windows.Forms.Panel();
-            this.textBox_Down_Up_Load_Log = new System.Windows.Forms.TextBox();
             this.label_Down_UP_Load_Log = new System.Windows.Forms.Label();
+            this.textBox_Down_Up_Load_Log = new System.Windows.Forms.TextBox();
             this.label_Server_Status = new System.Windows.Forms.Label();
             this.panel_Connect_Log = new System.Windows.Forms.Panel();
-            this.textBox_Connect_Log = new System.Windows.Forms.TextBox();
             this.label_Connection_Log = new System.Windows.Forms.Label();
+            this.textBox_Connect_Log = new System.Windows.Forms.TextBox();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.label_Storage_Path = new System.Windows.Forms.Label();
             this.textBox_Storage_Path = new System.Windows.Forms.TextBox();
+            this.label_Storage_Path = new System.Windows.Forms.Label();
             this.button_Find_Path = new System.Windows.Forms.Button();
             this.folder_Browser_Dialog = new System.Windows.Forms.FolderBrowserDialog();
             this.panel_Sever_IP.SuspendLayout();
@@ -139,6 +139,17 @@
             this.panel_Server_Log.Size = new System.Drawing.Size(318, 286);
             this.panel_Server_Log.TabIndex = 5;
             // 
+            // label_Down_UP_Load_Log
+            // 
+            this.label_Down_UP_Load_Log.AutoSize = true;
+            this.label_Down_UP_Load_Log.Dock = System.Windows.Forms.DockStyle.Top;
+            this.label_Down_UP_Load_Log.Font = new System.Drawing.Font("굴림", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.label_Down_UP_Load_Log.Location = new System.Drawing.Point(0, 0);
+            this.label_Down_UP_Load_Log.Name = "label_Down_UP_Load_Log";
+            this.label_Down_UP_Load_Log.Size = new System.Drawing.Size(131, 12);
+            this.label_Down_UP_Load_Log.TabIndex = 7;
+            this.label_Down_UP_Load_Log.Text = "Down-Up Load Log";
+            // 
             // textBox_Down_Up_Load_Log
             // 
             this.textBox_Down_Up_Load_Log.Cursor = System.Windows.Forms.Cursors.Default;
@@ -151,17 +162,6 @@
             this.textBox_Down_Up_Load_Log.Size = new System.Drawing.Size(318, 271);
             this.textBox_Down_Up_Load_Log.TabIndex = 0;
             this.textBox_Down_Up_Load_Log.TabStop = false;
-            // 
-            // label_Down_UP_Load_Log
-            // 
-            this.label_Down_UP_Load_Log.AutoSize = true;
-            this.label_Down_UP_Load_Log.Dock = System.Windows.Forms.DockStyle.Top;
-            this.label_Down_UP_Load_Log.Font = new System.Drawing.Font("굴림", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.label_Down_UP_Load_Log.Location = new System.Drawing.Point(0, 0);
-            this.label_Down_UP_Load_Log.Name = "label_Down_UP_Load_Log";
-            this.label_Down_UP_Load_Log.Size = new System.Drawing.Size(131, 12);
-            this.label_Down_UP_Load_Log.TabIndex = 7;
-            this.label_Down_UP_Load_Log.Text = "Down-Up Load Log";
             // 
             // label_Server_Status
             // 
@@ -187,6 +187,17 @@
             this.panel_Connect_Log.Size = new System.Drawing.Size(332, 286);
             this.panel_Connect_Log.TabIndex = 9;
             // 
+            // label_Connection_Log
+            // 
+            this.label_Connection_Log.AutoSize = true;
+            this.label_Connection_Log.Dock = System.Windows.Forms.DockStyle.Top;
+            this.label_Connection_Log.Font = new System.Drawing.Font("굴림", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.label_Connection_Log.Location = new System.Drawing.Point(0, 0);
+            this.label_Connection_Log.Name = "label_Connection_Log";
+            this.label_Connection_Log.Size = new System.Drawing.Size(108, 12);
+            this.label_Connection_Log.TabIndex = 10;
+            this.label_Connection_Log.Text = "Connection Log";
+            // 
             // textBox_Connect_Log
             // 
             this.textBox_Connect_Log.Cursor = System.Windows.Forms.Cursors.Default;
@@ -199,17 +210,6 @@
             this.textBox_Connect_Log.Size = new System.Drawing.Size(332, 271);
             this.textBox_Connect_Log.TabIndex = 0;
             // 
-            // label_Connection_Log
-            // 
-            this.label_Connection_Log.AutoSize = true;
-            this.label_Connection_Log.Dock = System.Windows.Forms.DockStyle.Top;
-            this.label_Connection_Log.Font = new System.Drawing.Font("굴림", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.label_Connection_Log.Location = new System.Drawing.Point(0, 0);
-            this.label_Connection_Log.Name = "label_Connection_Log";
-            this.label_Connection_Log.Size = new System.Drawing.Size(108, 12);
-            this.label_Connection_Log.TabIndex = 10;
-            this.label_Connection_Log.Text = "Connection Log";
-            // 
             // panel1
             // 
             this.panel1.Controls.Add(this.textBox_Storage_Path);
@@ -219,6 +219,14 @@
             this.panel1.Size = new System.Drawing.Size(487, 24);
             this.panel1.TabIndex = 10;
             // 
+            // textBox_Storage_Path
+            // 
+            this.textBox_Storage_Path.Dock = System.Windows.Forms.DockStyle.Right;
+            this.textBox_Storage_Path.Location = new System.Drawing.Point(207, 0);
+            this.textBox_Storage_Path.Name = "textBox_Storage_Path";
+            this.textBox_Storage_Path.Size = new System.Drawing.Size(280, 21);
+            this.textBox_Storage_Path.TabIndex = 1;
+            // 
             // label_Storage_Path
             // 
             this.label_Storage_Path.AutoSize = true;
@@ -227,14 +235,6 @@
             this.label_Storage_Path.Size = new System.Drawing.Size(38, 12);
             this.label_Storage_Path.TabIndex = 0;
             this.label_Storage_Path.Text = "Path :";
-            // 
-            // textBox_Storage_Path
-            // 
-            this.textBox_Storage_Path.Dock = System.Windows.Forms.DockStyle.Right;
-            this.textBox_Storage_Path.Location = new System.Drawing.Point(207, 0);
-            this.textBox_Storage_Path.Name = "textBox_Storage_Path";
-            this.textBox_Storage_Path.Size = new System.Drawing.Size(280, 21);
-            this.textBox_Storage_Path.TabIndex = 1;
             // 
             // button_Find_Path
             // 

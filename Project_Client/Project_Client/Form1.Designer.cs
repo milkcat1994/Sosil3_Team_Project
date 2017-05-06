@@ -31,14 +31,12 @@
             this.components = new System.ComponentModel.Container();
             System.Windows.Forms.ListViewItem listViewItem1 = new System.Windows.Forms.ListViewItem(new string[] {
             "test",
-            "1",
-            "2",
-            "3"}, 1);
+            "0",
+            "1234-45-56"}, 1);
             System.Windows.Forms.ListViewItem listViewItem2 = new System.Windows.Forms.ListViewItem(new string[] {
             "test4",
-            "2",
-            "3",
-            "4"}, 1);
+            "4",
+            "1234-32-32"}, 1);
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form_Client));
             this.panel_ID = new System.Windows.Forms.Panel();
             this.textBox_ID = new System.Windows.Forms.TextBox();
@@ -57,6 +55,9 @@
             this.panel_Login = new System.Windows.Forms.Panel();
             this.button_Login = new System.Windows.Forms.Button();
             this.panel_Project_View = new System.Windows.Forms.Panel();
+            this.button_Project_Open = new System.Windows.Forms.Button();
+            this.button_Delete_Project = new System.Windows.Forms.Button();
+            this.button_Create_Project = new System.Windows.Forms.Button();
             this.listView_Project_1 = new System.Windows.Forms.ListView();
             this.imageList1 = new System.Windows.Forms.ImageList(this.components);
             this.button_Calender = new System.Windows.Forms.Button();
@@ -223,23 +224,57 @@
             // 
             // panel_Project_View
             // 
+            this.panel_Project_View.Controls.Add(this.button_Project_Open);
+            this.panel_Project_View.Controls.Add(this.button_Delete_Project);
+            this.panel_Project_View.Controls.Add(this.button_Create_Project);
             this.panel_Project_View.Controls.Add(this.listView_Project_1);
             this.panel_Project_View.Location = new System.Drawing.Point(12, 50);
             this.panel_Project_View.Name = "panel_Project_View";
-            this.panel_Project_View.Size = new System.Drawing.Size(460, 321);
+            this.panel_Project_View.Size = new System.Drawing.Size(460, 360);
             this.panel_Project_View.TabIndex = 3;
+            // 
+            // button_Project_Open
+            // 
+            this.button_Project_Open.Location = new System.Drawing.Point(172, 319);
+            this.button_Project_Open.Name = "button_Project_Open";
+            this.button_Project_Open.Size = new System.Drawing.Size(108, 38);
+            this.button_Project_Open.TabIndex = 3;
+            this.button_Project_Open.Text = "프로젝트 열기";
+            this.button_Project_Open.UseVisualStyleBackColor = true;
+            this.button_Project_Open.Click += new System.EventHandler(this.button_Project_Open_Click);
+            // 
+            // button_Delete_Project
+            // 
+            this.button_Delete_Project.Location = new System.Drawing.Point(321, 319);
+            this.button_Delete_Project.Name = "button_Delete_Project";
+            this.button_Delete_Project.Size = new System.Drawing.Size(108, 38);
+            this.button_Delete_Project.TabIndex = 2;
+            this.button_Delete_Project.Text = "프로젝트 삭제";
+            this.button_Delete_Project.UseVisualStyleBackColor = true;
+            // 
+            // button_Create_Project
+            // 
+            this.button_Create_Project.Location = new System.Drawing.Point(22, 319);
+            this.button_Create_Project.Name = "button_Create_Project";
+            this.button_Create_Project.Size = new System.Drawing.Size(108, 38);
+            this.button_Create_Project.TabIndex = 1;
+            this.button_Create_Project.Text = "프로젝트 생성";
+            this.button_Create_Project.UseVisualStyleBackColor = true;
+            this.button_Create_Project.Click += new System.EventHandler(this.button_Create_Project_Click);
             // 
             // listView_Project_1
             // 
+            this.listView_Project_1.Alignment = System.Windows.Forms.ListViewAlignment.Default;
             this.listView_Project_1.Items.AddRange(new System.Windows.Forms.ListViewItem[] {
             listViewItem1,
             listViewItem2});
             this.listView_Project_1.LargeImageList = this.imageList1;
             this.listView_Project_1.Location = new System.Drawing.Point(0, 0);
+            this.listView_Project_1.MultiSelect = false;
             this.listView_Project_1.Name = "listView_Project_1";
-            this.listView_Project_1.Size = new System.Drawing.Size(460, 320);
+            this.listView_Project_1.Size = new System.Drawing.Size(460, 300);
             this.listView_Project_1.TabIndex = 0;
-            this.listView_Project_1.TileSize = new System.Drawing.Size(220, 100);
+            this.listView_Project_1.TileSize = new System.Drawing.Size(210, 100);
             this.listView_Project_1.UseCompatibleStateImageBehavior = false;
             this.listView_Project_1.View = System.Windows.Forms.View.Tile;
             // 
@@ -309,6 +344,9 @@
         private System.Windows.Forms.ListView listView_Project_1;
         private System.Windows.Forms.ImageList imageList1;
         private System.Windows.Forms.Button button_Calender;
+        private System.Windows.Forms.Button button_Delete_Project;
+        private System.Windows.Forms.Button button_Create_Project;
+        private System.Windows.Forms.Button button_Project_Open;
     }
 }
 
