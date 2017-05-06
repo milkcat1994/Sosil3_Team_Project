@@ -235,7 +235,7 @@ namespace Project_Client
         private void button_Login_Click(object sender, EventArgs e)
         {
             //For SQL connection _ Path is Server DB Path
-            SqlConnection sqlCon = new SqlConnection(@"Data Source = (LocalDB)\MSSQLLocalDB; AttachDbFilename = D:\school\3\Linux\Project\Project_Server\Project_Server\Server_DB.mdf; Integrated Security = True; Connect Timeout = 30");
+            SqlConnection sqlCon = new SqlConnection(@"Data Source = (LocalDB)\MSSQLLocalDB; AttachDbFilename = D:\school\3\Linux\Project\Project_Server\Server_DB.mdf; Integrated Security = True; Connect Timeout = 30");
             //If you want to select attribute in Server DB
             string query = "select * from Login where Id ='" + textBox_ID.Text.Trim() + "'and password = '" + textBox_PW.Text.Trim() + "'";
             //Adapter between query and DB
