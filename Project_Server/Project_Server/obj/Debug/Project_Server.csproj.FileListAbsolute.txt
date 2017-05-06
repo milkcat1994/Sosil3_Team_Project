@@ -8,3 +8,6 @@ D:\school\3\Linux\Project\Project_Server\Project_Server\obj\Debug\Project_Server
 D:\school\3\Linux\Project\Project_Server\Project_Server\obj\Debug\Project_Server.csproj.GenerateResource.Cache
 D:\school\3\Linux\Project\Project_Server\Project_Server\obj\Debug\Project_Server.exe
 D:\school\3\Linux\Project\Project_Server\Project_Server\obj\Debug\Project_Server.pdb
+D:\school\3\Linux\Project\Project_Server\Project_Server\bin\Debug\Interop.Shell32.dll
+D:\school\3\Linux\Project\Project_Server\Project_Server\obj\Debug\Interop.Shell32.dll
+D:\school\3\Linux\Project\Project_Server\Project_Server\obj\Debug\Project_Server.csproj.ResolveComReference.cache
