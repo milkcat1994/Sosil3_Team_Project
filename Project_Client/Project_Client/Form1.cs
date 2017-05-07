@@ -8,13 +8,13 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-
 using System.Data.SqlClient;
 using System.IO;            //for using StreamReader/Writer_Class
 using System.Net;           //for using IPEndPoint_Class
 using System.Net.Sockets;   //for using Socket_Class
 using System.Threading;     //for using Thread_Class
 using Shell32;              //ShellClass()사용 shell controls 참조 추가
+using System.Collections;
 
 namespace Project_Client
 {
@@ -40,70 +40,35 @@ namespace Project_Client
         //Define Thread Object
         private Thread m_Thread = null;
 
-        public Form_Client()
-        {
-            InitializeComponent();
-            panel_Login.Visible = false;
-            panel_Project_View.Visible = true;
-
-            // 리스트뷰 아이템을 업데이트 하기 시작.
-            // 업데이트가 끝날 때까지 UI 갱신 중지.
-            listView_Project_1.BeginUpdate();
-
-            // 뷰모드 지정
-            listView_Project_1.View = View.Tile;
-
-            // 아이콘을 위해 이미지 지정
-            listView_Project_1.LargeImageList = imageList1;
-            //listView1.SmallImageList = imageList1;
-            
-            // 각 파일별로 ListViewItem객체를 하나씩 만듦
-            // 파일명, 사이즈, 날짜 정보를 추가
-            ListViewItem lvi = new ListViewItem("test1");
-            lvi.SubItems.Add("1");
-            lvi.SubItems.Add("1234-12-12");
-            lvi.ImageIndex = 0;
-            
-            listView_Project_1.Items.Add(lvi);
-
-            lvi = new ListViewItem("test2");
-            lvi.SubItems.Add("2");
-            lvi.SubItems.Add("4321-21-21");
-            lvi.ImageIndex = 0;
-            // ListViewItem객체를 Items 속성에 추가
-            listView_Project_1.Items.Add(lvi);
-
-
-            lvi = new ListViewItem("test3");
-            lvi.SubItems.Add("3");
-            lvi.SubItems.Add("4321-21-21");
-            lvi.ImageIndex = 0;
-            // ListViewItem객체를 Items 속성에 추가
-            listView_Project_1.Items.Add(lvi);
-            lvi = new ListViewItem("test5");
-            lvi.SubItems.Add("5");
-            lvi.SubItems.Add("4321-21-21");
-            lvi.ImageIndex = 0;
-            // ListViewItem객체를 Items 속성에 추가
-            listView_Project_1.Items.Add(lvi);
-
-            lvi = new ListViewItem("test6");
-            lvi.SubItems.Add("6");
-            lvi.SubItems.Add("4321-21-21");
-            lvi.ImageIndex = 0;
-            // ListViewItem객체를 Items 속성에 추가
-            listView_Project_1.Items.Add(lvi);
-
-            // 컬럼명과 컬럼사이즈 지정
-            listView_Project_1.Columns.Add("Project Name", 30, HorizontalAlignment.Left);
-            listView_Project_1.Columns.Add("Project Number", 5, HorizontalAlignment.Left);
-            listView_Project_1.Columns.Add("Date", 10, HorizontalAlignment.Left);
-
-            // 리스트뷰를 Refresh하여 보여줌
-            listView_Project_1.EndUpdate();
-            
-        }
+        //For SQL connection _ Path is Server DB Path
+        SqlConnection sqlConnect = new SqlConnection(@"Data Source = (LocalDB)\MSSQLLocalDB; AttachDbFilename=D:\school\3\Linux\Project\Project_Server\Server_DB.mdf;Integrated Security = True; Connect Timeout = 30");
+        //SQL Line
+        string query;
+        //Adapter between query and DB
+        SqlDataAdapter sqla = null;
+        //Make a DataTable Object
+        DataTable dt = null;
         
+        public struct ProjectStatus
+        {
+            public string name;
+            public string end_date;
+            public string number;
+            public string path;
+            public string start_date;
+            
+            public ProjectStatus(string name, string number, string end_date, string path, string start_date)
+            {
+                this.name = name;
+                this.number = number;
+                this.end_date = end_date;
+                this.path = path;
+                this.start_date = start_date;
+            }
+        }
+
+        public List<ProjectStatus> projectList = new List<ProjectStatus>();
+
         //receive Server Request
         public void receive_Thread()
         {
@@ -121,24 +86,28 @@ namespace Project_Client
                 }
                 
                 //Music List를 Server Music List에 추가시켜줌
-                if (dataType.Equals("List"))
+                if (dataType.Equals("Project status"))
                 {
-                    String tempString;
-                    //노래제목
-                    tempString = streamR.ReadLine();
-                    //한 리스트를 다 받고 난뒤 리스트의 마지막일 경우 List에 해당하는 루프를 빠져나옴
-                    ListViewItem lv_Item = new ListViewItem(tempString);
-                    //가수이름
-                    tempString = streamR.ReadLine();
-                    lv_Item.SubItems.Add(tempString);
-                    //플레이시간
-                    tempString = streamR.ReadLine();
-                    lv_Item.SubItems.Add(tempString);
-                    //음질
-                    tempString = streamR.ReadLine();
-                    lv_Item.SubItems.Add(tempString);
+                    //Receive Project status
+                    ProjectStatus tempPs;
+                    //Project name
+                    string Project_name = streamR.ReadLine();
+                    ListViewItem lvi = new ListViewItem(Project_name);
+                    //Project end_date
+                    string Project_end_date = streamR.ReadLine();
+                    lvi.SubItems.Add(Project_end_date);
+                    lvi.ImageIndex = 0;
 
-                   // this.listView_Server_Music_List.Items.Add(lv_Item);
+                    string Project_number = streamR.ReadLine();
+                    string Project_path = streamR.ReadLine();
+                    string Project_start_date = streamR.ReadLine();
+
+                    tempPs = new ProjectStatus(Project_name, Project_end_date,
+                        Project_number, Project_path, Project_start_date);
+                    projectList.Add(tempPs);
+                    listView_Project_1.Items.Add(lvi);
+
+                    // this.listView_Server_Music_List.Items.Add(lv_Item);
                 }
                 //서버로 부터 파일을 전송받아 해당 경로에 파일 생성
                 /*
@@ -254,14 +223,12 @@ namespace Project_Client
 
         private void button_Login_Click(object sender, EventArgs e)
         {
-            //For SQL connection _ Path is Server DB Path
-            SqlConnection sqlCon = new SqlConnection(@"Data Source = (LocalDB)\MSSQLLocalDB; AttachDbFilename = D:\school\3\Linux\Project\Project_Server\Server_DB.mdf; Integrated Security = True; Connect Timeout = 30");
             //If you want to select attribute in Server DB
-            string query = "select * from USER where ID ='" + textBox_ID.Text.Trim() + "'and PW = '" + textBox_PW.Text.Trim() + "'";
+            query = "select Name from dbo.USERS where ID ='" + textBox_ID.Text.Trim() + "' and PW = '" + textBox_PW.Text.Trim() + "'";
             //Adapter between query and DB
-            SqlDataAdapter sqla = new SqlDataAdapter(query, sqlCon);
+            sqla = new SqlDataAdapter(query, sqlConnect);
             //Make a DataTable Object
-            DataTable dt = new DataTable();
+            dt = new DataTable();
             //find attribute your sql
             sqla.Fill(dt);
 
@@ -274,6 +241,21 @@ namespace Project_Client
                 //Form_Client.ActiveForm.Width = 200;
                 //Form_Client.ActiveForm.Height = 200;
                 this.ClientSize = new System.Drawing.Size(530, 340);
+
+                //request Project Menu
+                streamW.WriteLine("Project Menu");
+                textBox_log.AppendText("send success to server\n");
+                //Send User ID in Project
+                string user_ID = textBox_ID.Text.Trim();
+                streamW.WriteLine(user_ID);
+                streamW.Flush();
+                //Find Pno, and Pname, p_start_date, p_end_date, Ppath and send to Client at Server
+                textBox_ID.Text = "";
+                textBox_PW.Text = "";
+                panel_Login.Visible = false;
+
+                panel_Project_View.Visible = true;
+                return;
             }
             //If it not find ID, PW in table -> Show a Message Box _ Error Message
             else
@@ -326,6 +308,32 @@ namespace Project_Client
             //다운로드 버튼은 모두 작동, Double Click의 경우 txt일경우에 메모장을 띄울 수 있나?
             //이미지도 Double Click의 경우 다르게 해보던지요..
                         
+        }
+
+        public Form_Client()
+        {
+            InitializeComponent();
+            panel_Connect.Visible = true;
+            panel_Login.Visible = false;
+            panel_Project_View.Visible = false;
+
+            // 리스트뷰 아이템을 업데이트 하기 시작.
+            // 업데이트가 끝날 때까지 UI 갱신 중지.
+            listView_Project_1.BeginUpdate();
+
+            // 뷰모드 지정
+            listView_Project_1.View = View.Tile;
+
+            // 아이콘을 위해 이미지 지정
+            listView_Project_1.LargeImageList = imageList1;
+
+            // 컬럼명과 컬럼사이즈 지정
+            listView_Project_1.Columns.Add("Project_Name", 30, HorizontalAlignment.Left);
+            listView_Project_1.Columns.Add("Project_End_Date", 10, HorizontalAlignment.Left);
+
+            // 리스트뷰를 Refresh하여 보여줌
+            listView_Project_1.EndUpdate();
+
         }
     }
 }

@@ -14,6 +14,7 @@ using System.Net;           //for using IPEndPoint_Class
 using System.Net.Sockets;   //for using Socket_Class
 using System.Threading;     //for using Thread_Class
 using Shell32;              //ShellClass()사용 shell controls 참조 추가
+using System.Data.SqlClient;
 
 namespace Project_Server
 {
@@ -57,6 +58,15 @@ namespace Project_Server
         DirectoryInfo di;
         //file Read위한 변수
         FileStream fileReader;
+
+        //For SQL connection _ Path is Server DB Path
+        SqlConnection sqlConnect = new SqlConnection(@"Data Source = (LocalDB)\MSSQLLocalDB; AttachDbFilename = D:\school\3\Linux\Project\Project_Server\Server_DB.mdf; Integrated Security = True; Connect Timeout = 30");
+        //SQL Line
+        string query;
+        //Adapter between query and DB
+        SqlDataAdapter sqla = null;
+        //Make a DataTable Object
+        DataTable dt = null;
 
         public Form_Server()
         {
@@ -133,9 +143,10 @@ namespace Project_Server
             {
                 try
                 {
+                    this.textBox_Down_Up_Load_Log.AppendText("waiting Client request\n");
                     //파일의 타입을 맨 처음 전송 받음
                     dataType = streamR.ReadLine();
-                    //this.textBox_Down_Up_Load_Log.AppendText("Server dataType : " + dataType + "\n");
+                    this.textBox_Down_Up_Load_Log.AppendText("Server dataType : " + dataType + "\n");
                 }
                 catch
                 {
@@ -144,13 +155,13 @@ namespace Project_Server
                 }
 
                 //패킷 타입 분석 이후 패킷 종류에 따라 나눠서 사용함.
-                if (dataType.Equals("Client_Request"))
+                if (dataType.Equals("Project Menu"))
                 {
-                    //8.2_score : 1
-                    //클라요청은 음악 이름을 받음
-                    //뮤직 이름 전송 위한 수신
-                    string tempString = streamR.ReadLine();
-                    //this.sendMp3FiletoClient(tempString);
+                    //receive User ID at Client
+                    string user_ID = streamR.ReadLine();
+                    //find and send ProjectStatus
+                    textBox_Down_Up_Load_Log.AppendText("ProjectMenu <- request receive success\n");
+                    this.findProjectStatus(user_ID);
                 }
                 else if (dataType.Equals("Client UpLoad"))
                 {
@@ -159,6 +170,44 @@ namespace Project_Server
                 }
             }
         }
+
+        private void findProjectStatus(string user_ID)
+        {
+            //Find Pname, Pno, Ppath, p_start_date and p_end_date in PROJECT table
+            query = "select Pname, Pno, Ppath, p_start_date, p_end_date"
+                + " from PROJECT AS pro, PART_IN AS part"
+                + " where pro.Pno = part.Pnumber"
+                + " and part.ID = '" + user_ID + "'";
+
+            //Adapter between query and DB
+            sqla = new SqlDataAdapter(query, sqlConnect);
+            //Make a DataTable Object
+            dt = new DataTable();
+            //find attribute your sql
+            sqla.Fill(dt);
+
+            for (int i =0; i< dt.Rows.Count; i++)
+            {
+                //Send Project status
+                streamW.WriteLine("Project status");
+                
+                //Send 5-times
+                //Send Project name
+                streamW.WriteLine(dt.Rows[i]["Pname"].ToString());
+                //Send Project end_date
+                streamW.WriteLine(dt.Rows[i]["p_end_date"].ToString());
+                //Send Project number
+                streamW.WriteLine(dt.Rows[i]["Pno"].ToString());
+                //Send Project path
+                streamW.WriteLine(dt.Rows[i]["Ppath"].ToString());
+                //Send Project start_date
+                streamW.WriteLine(dt.Rows[i]["p_start_date"].ToString());
+                streamW.Flush();
+                textBox_Down_Up_Load_Log.AppendText("Pname"+ dt.Rows[i]["Pname"]+"\n");
+            }
+            MessageBox.Show("send success!!!");
+        }
+
 
         //Set Storage_Path
         private void button_Find_Path_Click(object sender, EventArgs e)
@@ -181,11 +230,13 @@ namespace Project_Server
                 this.label_Server_Status.ForeColor = Color.BlueViolet;
                 textBox_Connect_Log.AppendText("Server Stopped\n");
             }
+            /*
             else if (textBox_Storage_Path.Text == "")
             {
                 MessageBox.Show("경로가 선택되지 않았습니다. 경로를 다시 지정하십시오.", "Error", MessageBoxButtons.OK
                     , MessageBoxIcon.Error);
             }
+            */
             else if (button_Server_Start.Text.Equals("Start"))
             {
                 //Socket 변수 초기화
