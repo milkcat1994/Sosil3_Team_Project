@@ -47,13 +47,14 @@
             this.panel_Login = new System.Windows.Forms.Panel();
             this.button_Login = new System.Windows.Forms.Button();
             this.panel_Project_View = new System.Windows.Forms.Panel();
+            this.textBox_log = new System.Windows.Forms.TextBox();
+            this.button_Calender = new System.Windows.Forms.Button();
             this.button_Project_Open = new System.Windows.Forms.Button();
-            this.button_Delete_Project = new System.Windows.Forms.Button();
-            this.button_Create_Project = new System.Windows.Forms.Button();
             this.listView_Project_1 = new System.Windows.Forms.ListView();
             this.imageList1 = new System.Windows.Forms.ImageList(this.components);
-            this.button_Calender = new System.Windows.Forms.Button();
-            this.textBox_log = new System.Windows.Forms.TextBox();
+            this.button_Delete_Project = new System.Windows.Forms.Button();
+            this.button_Create_Project = new System.Windows.Forms.Button();
+            this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.panel_ID.SuspendLayout();
             this.panel_PW.SuspendLayout();
             this.panel_IP.SuspendLayout();
@@ -220,13 +221,30 @@
             this.panel_Project_View.Controls.Add(this.textBox_log);
             this.panel_Project_View.Controls.Add(this.button_Calender);
             this.panel_Project_View.Controls.Add(this.button_Project_Open);
+            this.panel_Project_View.Controls.Add(this.listView_Project_1);
             this.panel_Project_View.Controls.Add(this.button_Delete_Project);
             this.panel_Project_View.Controls.Add(this.button_Create_Project);
-            this.panel_Project_View.Controls.Add(this.listView_Project_1);
             this.panel_Project_View.Location = new System.Drawing.Point(12, 12);
             this.panel_Project_View.Name = "panel_Project_View";
-            this.panel_Project_View.Size = new System.Drawing.Size(460, 398);
+            this.panel_Project_View.Size = new System.Drawing.Size(460, 368);
             this.panel_Project_View.TabIndex = 3;
+            // 
+            // textBox_log
+            // 
+            this.textBox_log.Location = new System.Drawing.Point(13, 240);
+            this.textBox_log.Multiline = true;
+            this.textBox_log.Name = "textBox_log";
+            this.textBox_log.Size = new System.Drawing.Size(444, 73);
+            this.textBox_log.TabIndex = 4;
+            // 
+            // button_Calender
+            // 
+            this.button_Calender.Location = new System.Drawing.Point(382, 3);
+            this.button_Calender.Name = "button_Calender";
+            this.button_Calender.Size = new System.Drawing.Size(75, 23);
+            this.button_Calender.TabIndex = 1;
+            this.button_Calender.Text = "달력";
+            this.button_Calender.UseVisualStyleBackColor = true;
             // 
             // button_Project_Open
             // 
@@ -237,6 +255,26 @@
             this.button_Project_Open.Text = "프로젝트 열기";
             this.button_Project_Open.UseVisualStyleBackColor = true;
             this.button_Project_Open.Click += new System.EventHandler(this.button_Project_Open_Click);
+            // 
+            // listView_Project_1
+            // 
+            this.listView_Project_1.Alignment = System.Windows.Forms.ListViewAlignment.Default;
+            this.listView_Project_1.LargeImageList = this.imageList1;
+            this.listView_Project_1.Location = new System.Drawing.Point(6, 32);
+            this.listView_Project_1.MultiSelect = false;
+            this.listView_Project_1.Name = "listView_Project_1";
+            this.listView_Project_1.Size = new System.Drawing.Size(454, 202);
+            this.listView_Project_1.TabIndex = 0;
+            this.listView_Project_1.TileSize = new System.Drawing.Size(210, 100);
+            this.listView_Project_1.UseCompatibleStateImageBehavior = false;
+            this.listView_Project_1.View = System.Windows.Forms.View.Tile;
+            // 
+            // imageList1
+            // 
+            this.imageList1.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageList1.ImageStream")));
+            this.imageList1.TransparentColor = System.Drawing.Color.Transparent;
+            this.imageList1.Images.SetKeyName(0, "Play.png");
+            this.imageList1.Images.SetKeyName(1, "Pause.png");
             // 
             // button_Delete_Project
             // 
@@ -257,48 +295,16 @@
             this.button_Create_Project.UseVisualStyleBackColor = true;
             this.button_Create_Project.Click += new System.EventHandler(this.button_Create_Project_Click);
             // 
-            // listView_Project_1
+            // timer1
             // 
-            this.listView_Project_1.Alignment = System.Windows.Forms.ListViewAlignment.Default;
-            this.listView_Project_1.LargeImageList = this.imageList1;
-            this.listView_Project_1.Location = new System.Drawing.Point(0, 31);
-            this.listView_Project_1.MultiSelect = false;
-            this.listView_Project_1.Name = "listView_Project_1";
-            this.listView_Project_1.Size = new System.Drawing.Size(460, 202);
-            this.listView_Project_1.TabIndex = 0;
-            this.listView_Project_1.TileSize = new System.Drawing.Size(210, 100);
-            this.listView_Project_1.UseCompatibleStateImageBehavior = false;
-            this.listView_Project_1.View = System.Windows.Forms.View.Tile;
-            // 
-            // imageList1
-            // 
-            this.imageList1.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageList1.ImageStream")));
-            this.imageList1.TransparentColor = System.Drawing.Color.Transparent;
-            this.imageList1.Images.SetKeyName(0, "Play.png");
-            this.imageList1.Images.SetKeyName(1, "Pause.png");
-            // 
-            // button_Calender
-            // 
-            this.button_Calender.Location = new System.Drawing.Point(382, 3);
-            this.button_Calender.Name = "button_Calender";
-            this.button_Calender.Size = new System.Drawing.Size(75, 23);
-            this.button_Calender.TabIndex = 1;
-            this.button_Calender.Text = "달력";
-            this.button_Calender.UseVisualStyleBackColor = true;
-            // 
-            // textBox_log
-            // 
-            this.textBox_log.Location = new System.Drawing.Point(13, 240);
-            this.textBox_log.Multiline = true;
-            this.textBox_log.Name = "textBox_log";
-            this.textBox_log.Size = new System.Drawing.Size(444, 73);
-            this.textBox_log.TabIndex = 4;
+            this.timer1.Enabled = true;
+            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
             // Form_Client
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(484, 422);
+            this.ClientSize = new System.Drawing.Size(492, 505);
             this.Controls.Add(this.panel_Project_View);
             this.Controls.Add(this.panel_Login);
             this.Controls.Add(this.panel_Connect);
@@ -348,6 +354,7 @@
         private System.Windows.Forms.Button button_Create_Project;
         private System.Windows.Forms.Button button_Project_Open;
         private System.Windows.Forms.TextBox textBox_log;
+        private System.Windows.Forms.Timer timer1;
     }
 }
 

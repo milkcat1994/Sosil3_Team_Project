@@ -15,6 +15,7 @@ using System.Net.Sockets;   //for using Socket_Class
 using System.Threading;     //for using Thread_Class
 using Shell32;              //ShellClass()사용 shell controls 참조 추가
 using System.Data.SqlClient;
+using NetFwTypeLib;     //Firewall
 
 namespace Project_Server
 {
@@ -23,7 +24,7 @@ namespace Project_Server
         //Client Object and Server IP, Port
         Socket Client = null;
         IPEndPoint point;
-        private String WanIP;
+        private string WanIP;
         int port;
 
         private TcpListener m_Listener = null;
@@ -60,6 +61,7 @@ namespace Project_Server
         FileStream fileReader;
 
         //For SQL connection _ Path is Server DB Path
+        //If you
         SqlConnection sqlConnect = new SqlConnection(@"Data Source = (LocalDB)\MSSQLLocalDB; AttachDbFilename = D:\school\3\Linux\Project\Project_Server\Server_DB.mdf; Integrated Security = True; Connect Timeout = 30");
         //SQL Line
         string query;
@@ -77,12 +79,14 @@ namespace Project_Server
         {
             //아이피 주소 획득
             IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
+
             foreach (IPAddress ip in host.AddressList)
             {
                 if (ip.AddressFamily == AddressFamily.InterNetwork)
                 {
                     WanIP = ip.ToString();
-                    break;
+                    this.textBox_Down_Up_Load_Log.AppendText( WanIP + "\n" );
+                    //break;
                 }
             }
             return WanIP;
@@ -91,7 +95,7 @@ namespace Project_Server
         private void Form_Server_Load(object sender, EventArgs e)
         {
             //get my ip
-            this.textBox_IP.AppendText(Get_My_IP_Wan());
+            this.textBox_IP.Text = Get_My_IP_Wan().ToString();
             
             //get port
             //Random randNum = new Random();
@@ -100,21 +104,48 @@ namespace Project_Server
             this.textBox_Port.Text = port.ToString();
         }
 
-
         //서버가 전송한 Music_File_List 받아서 Client쪽 ListView에 보여주기
         public void receive_Thread()
         {
             try
-            {
+            {// Creates one SocketPermission object for access restrictions
+                SocketPermission permission = new SocketPermission(
+                NetworkAccess.Accept,     // Allowed to accept connections 
+                TransportType.Tcp,        // Defines transport types 
+                "",                       // The IP addresses of local host 
+                SocketPermission.AllPorts // Specifies all ports 
+                );
+               
+                // Ensures the code to have permission to access a Socket
+                permission.Demand();
+                /*
+                //추가
                 //Get_My_IP_Wan을 Form_Load를 통해 사용하여 ip주소값 저장, Listener실행
-                IPAddress ip = IPAddress.Parse(WanIP);
+                INetFwRule firewallRule = (INetFwRule)Activator.CreateInstance(
+                    Type.GetTypeFromProgID("HNetCfg.FWRule"));
+                firewallRule.Action = NET_FW_ACTION_.NET_FW_ACTION_BLOCK;
+                firewallRule.Description = "Used to block all internet access.";
+                firewallRule.Direction = NET_FW_RULE_DIRECTION_.NET_FW_RULE_DIR_OUT;
+                firewallRule.Enabled = true;
+                firewallRule.InterfaceTypes = "All";
+                firewallRule.Name = "Block Internet";
 
+                INetFwPolicy2 firewallPolicy = (INetFwPolicy2)Activator.CreateInstance(
+                    Type.GetTypeFromProgID("HNetCfg.FwPolicy2"));
+                firewallPolicy.Rules.Add(firewallRule);
+                //추가
+                */
+
+                IPAddress ip = IPAddress.Parse(WanIP.ToString());
+                Client.Blocking = true;
                 //서버 첫 구동
                 //클라이언트가 없다면 text 출력
                 if (!this.m_blsClientOn)
                     this.textBox_Connect_Log.AppendText("Waiting For Client Access...\n");
                 //SocketException
+                
                 point = new IPEndPoint(ip, port);
+                //point = new IPEndPoint(ip, port);
                 Client.Bind(point);
                 //소켓 대기상태
                 Client.Listen(1);
@@ -155,13 +186,35 @@ namespace Project_Server
                 }
 
                 //패킷 타입 분석 이후 패킷 종류에 따라 나눠서 사용함.
-                if (dataType.Equals("Project Menu"))
+                if (dataType.Equals("Login"))
                 {
+                    string query = streamR.ReadLine();
                     //receive User ID at Client
                     string user_ID = streamR.ReadLine();
-                    //find and send ProjectStatus
-                    textBox_Down_Up_Load_Log.AppendText("ProjectMenu <- request receive success\n");
-                    this.findProjectStatus(user_ID);
+
+                    //Adapter between query and DB
+                    sqla = new SqlDataAdapter(query, sqlConnect);
+                    //Make a DataTable Object
+                    dt = new DataTable();
+                    //find attribute your sql
+                    sqla.Fill(dt);
+                    
+                    if(dt.Rows.Count == 1)
+                    {
+                        streamW.WriteLine("Approved");
+                        streamW.Flush();
+                        textBox_Down_Up_Load_Log.AppendText("Approved to Client\n");
+                        //find and send ProjectStatus
+                        textBox_Down_Up_Load_Log.AppendText("ProjectMenu <- request receive success\n");
+                        this.findProjectStatus(user_ID);
+                    }
+                    else
+                    {
+                        textBox_Down_Up_Load_Log.AppendText("NotApproved to Client\n");
+                        streamW.WriteLine("NotApproved");
+                        streamW.Flush();
+                    }
+                    
                 }
                 else if (dataType.Equals("Client UpLoad"))
                 {
@@ -190,7 +243,7 @@ namespace Project_Server
             {
                 //Send Project status
                 streamW.WriteLine("Project status");
-                
+                streamW.Flush();
                 //Send 5-times
                 //Send Project name
                 streamW.WriteLine(dt.Rows[i]["Pname"].ToString());
@@ -203,9 +256,9 @@ namespace Project_Server
                 //Send Project start_date
                 streamW.WriteLine(dt.Rows[i]["p_start_date"].ToString());
                 streamW.Flush();
-                textBox_Down_Up_Load_Log.AppendText("Pname"+ dt.Rows[i]["Pname"]+"\n");
+                textBox_Down_Up_Load_Log.AppendText("Pname_"+ dt.Rows[i]["Pname"]+"\n");
             }
-            MessageBox.Show("send success!!!");
+            //MessageBox.Show("send success!!!");
         }
 
 
@@ -252,6 +305,25 @@ namespace Project_Server
                 label_Server_Status.Text = "Not Running";
                 this.label_Server_Status.ForeColor = Color.Red;
             }
+        }
+
+        private void Form_Server_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            //해당 값들에 대해 널값이 아닌경우에만 실행하여 exit실행
+            if (this.m_Listener != null)
+                this.m_Listener.Stop();
+            if (this.m_Thread != null)
+                this.m_Thread.Abort();
+            if (this.fileReader != null)
+                this.fileReader.Close();
+            if (this.Client != null)
+                this.Client.Close();
+            if (this.netStream != null)
+                this.netStream.Close();
+            if (this.streamR != null)
+                this.streamR.Close();
+            if (this.streamW != null)
+                this.streamW.Close();
         }
     }
 }

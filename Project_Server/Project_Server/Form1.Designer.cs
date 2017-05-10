@@ -68,7 +68,6 @@
             // 
             // textBox_IP
             // 
-            this.textBox_IP.Enabled = false;
             this.textBox_IP.Location = new System.Drawing.Point(24, 0);
             this.textBox_IP.Name = "textBox_IP";
             this.textBox_IP.Size = new System.Drawing.Size(294, 21);
@@ -222,9 +221,9 @@
             // textBox_Storage_Path
             // 
             this.textBox_Storage_Path.Dock = System.Windows.Forms.DockStyle.Right;
-            this.textBox_Storage_Path.Location = new System.Drawing.Point(207, 0);
+            this.textBox_Storage_Path.Location = new System.Drawing.Point(47, 0);
             this.textBox_Storage_Path.Name = "textBox_Storage_Path";
-            this.textBox_Storage_Path.Size = new System.Drawing.Size(280, 21);
+            this.textBox_Storage_Path.Size = new System.Drawing.Size(440, 21);
             this.textBox_Storage_Path.TabIndex = 1;
             // 
             // label_Storage_Path
@@ -263,6 +262,7 @@
             this.Controls.Add(this.panel_Sever_IP);
             this.Name = "Form_Server";
             this.Text = "Server";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form_Server_FormClosed);
             this.Load += new System.EventHandler(this.Form_Server_Load);
             this.panel_Sever_IP.ResumeLayout(false);
             this.panel_Sever_IP.PerformLayout();

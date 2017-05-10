@@ -15,6 +15,7 @@ using System.Net.Sockets;   //for using Socket_Class
 using System.Threading;     //for using Thread_Class
 using Shell32;              //ShellClass()사용 shell controls 참조 추가
 using System.Collections;
+using NetFwTypeLib;     //Firewall
 
 namespace Project_Client
 {
@@ -48,7 +49,9 @@ namespace Project_Client
         SqlDataAdapter sqla = null;
         //Make a DataTable Object
         DataTable dt = null;
-        
+
+        private BackgroundWorker bgw;
+
         public struct ProjectStatus
         {
             public string name;
@@ -106,58 +109,28 @@ namespace Project_Client
                         Project_number, Project_path, Project_start_date);
                     projectList.Add(tempPs);
                     listView_Project_1.Items.Add(lvi);
-
+                    panel_Project_View.Update();
                     // this.listView_Server_Music_List.Items.Add(lv_Item);
                 }
-                //서버로 부터 파일을 전송받아 해당 경로에 파일 생성
-                /*
-                else if (dataType.Equals("Music_File"))
+                //if it find ID, PW in table -> Connect_Panel_UnVisible, Login_Panel_Visible
+                //and Resize Form_Size
+                else if (dataType.Equals("Approved"))
                 {
-
-                    //파일 크기 수신
-                    string tempString = streamR.ReadLine();
-                    int fileLength = Convert.ToInt32(tempString);
-                    int totalLength = 0;
-
-                    //노래제목
-                    string music_Name = streamR.ReadLine();
-                    ListViewItem lv_Item = new ListViewItem(music_Name);
-                    //가수이름
-                    string music_Singer = streamR.ReadLine();
-                    lv_Item.SubItems.Add(music_Singer);
-                    //플레이시간
-                    string play_Time = streamR.ReadLine();
-                    lv_Item.SubItems.Add(play_Time);
-                    //음질
-                    string bit_Rate = streamR.ReadLine();
-                    lv_Item.SubItems.Add(bit_Rate);
-
-
-                    //open and create storage Path
-                    string storage_File = textBox_Storage_Path.Text.ToString() + "\\" + music_Name + ".mp3";
-                    storage_File.Replace("\\", "\\\\");
-                    FileStream stream = new FileStream(storage_File, FileMode.Create, FileAccess.Write);
-
-                    BinaryWriter writer = new BinaryWriter(stream);
-                    while (totalLength < fileLength)
-                    {
-                        int receiveLength = Client.Receive(readBuffer);
-                        writer.Write(readBuffer, 0, receiveLength);
-                        totalLength += receiveLength;
-                        //12.2_score : 0.3
-                        progressBar_Download.Value = Convert.ToInt32(((double)totalLength / (double)fileLength) * 100);
-                    }
-                    stream.Close();
-                    writer.Close();
-
-                    //13.1_score : 0.8
-                    //Play List View에 해당 파일 추가
-                    this.listView_Play_List.Items.Add(lv_Item);
-
-                    //array List 에 받은 데이터 삽입
-                    player_ArrList.Add(music_Name);
-                    //add file Length
-                }*/
+                    this.ClientSize = new System.Drawing.Size(530, 600);
+                    //Find Pno, and Pname, p_start_date, p_end_date, Ppath and send to Client at Server
+                    textBox_ID.Text = "";
+                    textBox_PW.Text = "";
+                    panel_Login.Hide();
+                    panel_Project_View.Show();
+                    panel_Project_View.Update();
+                }
+                //If it not find ID, PW in table -> Show a Message Box _ Error Message
+                else if (dataType.Equals("NotApproved"))
+                {
+                    MessageBox.Show("ID및 PW를 찾지 못하였습니다.\n 다시 확인하세요",
+                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                //서버로 부터 파일을 전송받아 해당 경로에 파일 생성
             }
         }
 
@@ -202,8 +175,8 @@ namespace Project_Client
             this.m_blsConnect = true;
 
             //Change Panel_visible
-            panel_Connect.Visible = false;
-            panel_Login.Visible = true;
+            panel_Connect.Hide();
+            panel_Login.Show();
 
             //received Server Request using while()
             //스래드로 RUN함수 실행
@@ -223,51 +196,32 @@ namespace Project_Client
 
         private void button_Login_Click(object sender, EventArgs e)
         {
+            streamW.WriteLine("Login");
+            streamW.Flush();
             //If you want to select attribute in Server DB
             query = "select Name from dbo.USERS where ID ='" + textBox_ID.Text.Trim() + "' and PW = '" + textBox_PW.Text.Trim() + "'";
-            //Adapter between query and DB
-            sqla = new SqlDataAdapter(query, sqlConnect);
-            //Make a DataTable Object
-            dt = new DataTable();
-            //find attribute your sql
-            sqla.Fill(dt);
-
-            //if it find ID, PW in table -> Connect_Panel_UnVisible, Login_Panel_Visible
-            //and Resize Form_Size
-            if (dt.Rows.Count == 1)
-            {
-                panel_Connect.Visible = false;
-                panel_Project_View.Visible = true;
-                //Form_Client.ActiveForm.Width = 200;
-                //Form_Client.ActiveForm.Height = 200;
-                this.ClientSize = new System.Drawing.Size(530, 340);
-
-                //request Project Menu
-                streamW.WriteLine("Project Menu");
-                textBox_log.AppendText("send success to server\n");
-                //Send User ID in Project
-                string user_ID = textBox_ID.Text.Trim();
-                streamW.WriteLine(user_ID);
-                streamW.Flush();
-                //Find Pno, and Pname, p_start_date, p_end_date, Ppath and send to Client at Server
-                textBox_ID.Text = "";
-                textBox_PW.Text = "";
-                panel_Login.Visible = false;
-
-                panel_Project_View.Visible = true;
-                return;
-            }
-            //If it not find ID, PW in table -> Show a Message Box _ Error Message
-            else
-            {
-                MessageBox.Show("ID및 PW를 찾지 못하였습니다.\n 다시 확인하세요",
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            //send query to Server
+            streamW.WriteLine(query.ToString());
+            streamW.Flush();
+            //Send User ID in Project
+            string user_ID = textBox_ID.Text.Trim();
+            streamW.WriteLine(user_ID);
+            streamW.Flush();
         }
 
         private void Form_Client_FormClosed(object sender, FormClosedEventArgs e)
         {
-            Client.Close();
+            //해당 값들에 대해 널값이 아닌경우에만 실행하여 exit실행
+            if (this.m_Thread != null)
+                this.m_Thread.Abort();
+            if (this.Client != null)
+                this.Client.Close();
+            if (this.netStream != null)
+                this.netStream.Close();
+            if (this.streamR != null)
+                this.streamR.Close();
+            if (this.streamW != null)
+                this.streamW.Close();
             return;
         }
 
@@ -307,20 +261,15 @@ namespace Project_Client
             //도식이후 파일 타입 : txt, jpeg, zip, 등등을 파악하여 imageList다르게 설정,
             //다운로드 버튼은 모두 작동, Double Click의 경우 txt일경우에 메모장을 띄울 수 있나?
             //이미지도 Double Click의 경우 다르게 해보던지요..
-                        
         }
 
         public Form_Client()
         {
             InitializeComponent();
-            panel_Connect.Visible = true;
-            panel_Login.Visible = false;
-            panel_Project_View.Visible = false;
-
-            // 리스트뷰 아이템을 업데이트 하기 시작.
-            // 업데이트가 끝날 때까지 UI 갱신 중지.
-            listView_Project_1.BeginUpdate();
-
+            panel_Connect.Show();
+            panel_Login.Hide();
+            panel_Project_View.Hide();
+            
             // 뷰모드 지정
             listView_Project_1.View = View.Tile;
 
@@ -330,10 +279,13 @@ namespace Project_Client
             // 컬럼명과 컬럼사이즈 지정
             listView_Project_1.Columns.Add("Project_Name", 30, HorizontalAlignment.Left);
             listView_Project_1.Columns.Add("Project_End_Date", 10, HorizontalAlignment.Left);
-
-            // 리스트뷰를 Refresh하여 보여줌
-            listView_Project_1.EndUpdate();
-
+            timer1.Start();
         }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            //textBox1.Text = (testnubmer++).ToString();
+        }
+
     }
 }
