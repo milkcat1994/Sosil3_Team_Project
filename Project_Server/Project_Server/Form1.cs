@@ -118,23 +118,6 @@ namespace Project_Server
                
                 // Ensures the code to have permission to access a Socket
                 permission.Demand();
-                /*
-                //추가
-                //Get_My_IP_Wan을 Form_Load를 통해 사용하여 ip주소값 저장, Listener실행
-                INetFwRule firewallRule = (INetFwRule)Activator.CreateInstance(
-                    Type.GetTypeFromProgID("HNetCfg.FWRule"));
-                firewallRule.Action = NET_FW_ACTION_.NET_FW_ACTION_BLOCK;
-                firewallRule.Description = "Used to block all internet access.";
-                firewallRule.Direction = NET_FW_RULE_DIRECTION_.NET_FW_RULE_DIR_OUT;
-                firewallRule.Enabled = true;
-                firewallRule.InterfaceTypes = "All";
-                firewallRule.Name = "Block Internet";
-
-                INetFwPolicy2 firewallPolicy = (INetFwPolicy2)Activator.CreateInstance(
-                    Type.GetTypeFromProgID("HNetCfg.FwPolicy2"));
-                firewallPolicy.Rules.Add(firewallRule);
-                //추가
-                */
 
                 IPAddress ip = IPAddress.Parse(WanIP.ToString());
                 Client.Blocking = true;
@@ -145,7 +128,6 @@ namespace Project_Server
                 //SocketException
                 
                 point = new IPEndPoint(ip, port);
-                //point = new IPEndPoint(ip, port);
                 Client.Bind(point);
                 //소켓 대기상태
                 Client.Listen(1);
@@ -188,33 +170,15 @@ namespace Project_Server
                 //패킷 타입 분석 이후 패킷 종류에 따라 나눠서 사용함.
                 if (dataType.Equals("Login"))
                 {
-                    string query = streamR.ReadLine();
-                    //receive User ID at Client
-                    string user_ID = streamR.ReadLine();
-
-                    //Adapter between query and DB
-                    sqla = new SqlDataAdapter(query, sqlConnect);
-                    //Make a DataTable Object
-                    dt = new DataTable();
-                    //find attribute your sql
-                    sqla.Fill(dt);
-                    
-                    if(dt.Rows.Count == 1)
-                    {
-                        streamW.WriteLine("Approved");
-                        streamW.Flush();
-                        textBox_Down_Up_Load_Log.AppendText("Approved to Client\n");
-                        //find and send ProjectStatus
-                        textBox_Down_Up_Load_Log.AppendText("ProjectMenu <- request receive success\n");
-                        this.findProjectStatus(user_ID);
-                    }
-                    else
-                    {
-                        textBox_Down_Up_Load_Log.AppendText("NotApproved to Client\n");
-                        streamW.WriteLine("NotApproved");
-                        streamW.Flush();
-                    }
-                    
+                    Task Login_Task = new Task(new Action(Decision_Approved));
+                    Login_Task.Start();
+                    Login_Task.Wait();
+                }
+                else if (dataType.Equals("Project_Open"))
+                {
+                    Task Project_Open_Task = new Task(new Action(Project_Open));
+                    Project_Open_Task.Start();
+                    Project_Open_Task.Wait();
                 }
                 else if (dataType.Equals("Client UpLoad"))
                 {
@@ -222,6 +186,42 @@ namespace Project_Server
                     //this.receiveMp3FiletoClient();
                 }
             }
+        }
+
+        private void Decision_Approved()
+        {
+            this.Invoke(new MethodInvoker(delegate ()
+            {
+                string query = streamR.ReadLine();
+                //receive User ID at Client
+                string user_ID = streamR.ReadLine();
+
+                //Adapter between query and DB
+                sqla = new SqlDataAdapter(query, sqlConnect);
+                //Make a DataTable Object
+                dt = new DataTable();
+                //find attribute your sql
+                sqla.Fill(dt);
+
+                if (dt.Rows.Count == 1)
+                {
+                    streamW.WriteLine("Approved");
+                    streamW.Flush();
+                    textBox_Down_Up_Load_Log.AppendText("Approved to Client\n");
+                    //find and send ProjectStatus
+                    textBox_Down_Up_Load_Log.AppendText("ProjectMenu <- request receive success\n");
+
+                    var Send_Project_Status_Task = Task<string>.Run(() => findProjectStatus(user_ID));
+                        Send_Project_Status_Task.Wait();
+                }
+                else
+                {
+                    textBox_Down_Up_Load_Log.AppendText("NotApproved to Client\n");
+                    streamW.WriteLine("NotApproved");
+                    streamW.Flush();
+                }
+            }));
+
         }
 
         private void findProjectStatus(string user_ID)
@@ -239,7 +239,7 @@ namespace Project_Server
             //find attribute your sql
             sqla.Fill(dt);
 
-            for (int i =0; i< dt.Rows.Count; i++)
+            for (int i = 0; i < dt.Rows.Count; i++)
             {
                 //Send Project status
                 streamW.WriteLine("Project status");
@@ -256,9 +256,44 @@ namespace Project_Server
                 //Send Project start_date
                 streamW.WriteLine(dt.Rows[i]["p_start_date"].ToString());
                 streamW.Flush();
-                textBox_Down_Up_Load_Log.AppendText("Pname_"+ dt.Rows[i]["Pname"]+"\n");
+                textBox_Down_Up_Load_Log.AppendText("Pname_" + dt.Rows[i]["Pname"] + "\n");
             }
             //MessageBox.Show("send success!!!");
+        }
+
+        private void Project_Open()
+        {
+            this.Invoke(new MethodInvoker(delegate ()
+            {
+                //receive query at Client
+                string query = streamR.ReadLine();
+
+                //Adapter between query and DB
+                sqla = new SqlDataAdapter(query, sqlConnect);
+                //Make a DataTable Object
+                dt = new DataTable();
+                //find attribute your sql
+                sqla.Fill(dt);
+
+                if (dt.Rows.Count == 1)
+                {
+                    streamW.WriteLine("Approved");
+                    streamW.Flush();
+                    textBox_Down_Up_Load_Log.AppendText("Approved to Client\n");
+                    //find and send ProjectStatus
+                    textBox_Down_Up_Load_Log.AppendText("ProjectMenu <- request receive success\n");
+
+                    var Send_Project_Status_Task = Task<string>.Run(() => findProjectStatus(Parameter));
+                    Send_Project_Status_Task.Wait();
+
+                }
+                else
+                {
+                    textBox_Down_Up_Load_Log.AppendText("NotApproved to Client\n");
+                    streamW.WriteLine("NotApproved");
+                    streamW.Flush();
+                }
+            }));
         }
 
 

@@ -87,42 +87,27 @@ namespace Project_Client
                     this.m_blsConnect = false;
                     return;
                 }
-                
+
                 //Music List를 Server Music List에 추가시켜줌
                 if (dataType.Equals("Project status"))
                 {
-                    //Receive Project status
-                    ProjectStatus tempPs;
-                    //Project name
-                    string Project_name = streamR.ReadLine();
-                    ListViewItem lvi = new ListViewItem(Project_name);
-                    //Project end_date
-                    string Project_end_date = streamR.ReadLine();
-                    lvi.SubItems.Add(Project_end_date);
-                    lvi.ImageIndex = 0;
-
-                    string Project_number = streamR.ReadLine();
-                    string Project_path = streamR.ReadLine();
-                    string Project_start_date = streamR.ReadLine();
-
-                    tempPs = new ProjectStatus(Project_name, Project_end_date,
-                        Project_number, Project_path, Project_start_date);
-                    projectList.Add(tempPs);
-                    listView_Project_1.Items.Add(lvi);
-                    panel_Project_View.Update();
-                    // this.listView_Server_Music_List.Items.Add(lv_Item);
+                    Task proStatus_Task = new Task(new Action(Add_ListView_Project_Status));
+                    proStatus_Task.Start();
+                    proStatus_Task.Wait();
                 }
                 //if it find ID, PW in table -> Connect_Panel_UnVisible, Login_Panel_Visible
                 //and Resize Form_Size
                 else if (dataType.Equals("Approved"))
                 {
-                    this.ClientSize = new System.Drawing.Size(530, 600);
-                    //Find Pno, and Pname, p_start_date, p_end_date, Ppath and send to Client at Server
-                    textBox_ID.Text = "";
-                    textBox_PW.Text = "";
-                    panel_Login.Hide();
-                    panel_Project_View.Show();
-                    panel_Project_View.Update();
+                    Task Approved_Task = new Task(new Action(Approved));
+                    Approved_Task.Start();
+                    Approved_Task.Wait();
+                }
+                else if (dataType.Equals("View_Project_List"))
+                {
+                    Task View_Project_List_Task = new Task(new Action(View_Project_List));
+                    View_Project_List_Task.Start();
+                    View_Project_List_Task.Wait();
                 }
                 //If it not find ID, PW in table -> Show a Message Box _ Error Message
                 else if (dataType.Equals("NotApproved"))
@@ -132,6 +117,69 @@ namespace Project_Client
                 }
                 //서버로 부터 파일을 전송받아 해당 경로에 파일 생성
             }
+        }
+
+        private void View_Project_List()
+        {
+            //sql을 이용한 해당 Project Name과 Project Number을 이용해서 해당 Project Path찾기
+            //Ppath를 서버로 전송 해당 경로에 있는 파일을 모두 불러와서 도식(ListView_Tile)
+            //도식이후 파일 타입 : txt, jpeg, zip, 등등을 파악하여 imageList다르게 설정,
+            //다운로드 버튼은 모두 작동, Double Click의 경우 txt일경우에 메모장을 띄울 수 있나?
+            //이미지도 Double Click의 경우 다르게 해보던지요..
+
+
+            //서버에서 button_Project_Open_Click 이함수에서 Write된것들 읽어서 처리하는부분
+            //넣고 나머지 FlowPanel에서 컨트롤들 추가해서 정렬 해봅시다.
+
+            //Find Pno, and Pname, p_start_date, p_end_date, Ppath and send to Client at Server
+            this.Invoke(new MethodInvoker(delegate ()
+            {
+                this.ClientSize = new System.Drawing.Size(530, 600);
+                textBox_ID.Text = "";
+                textBox_PW.Text = "";
+                panel_Project_View.Hide();
+                panel_Project_File_List.Show();
+            }));
+        }
+
+        private void Add_ListView_Project_Status()
+        {
+            this.Invoke(new MethodInvoker(delegate ()
+            {
+                //Receive Project status
+                ProjectStatus tempPs;
+                //Project name
+                string Project_name = streamR.ReadLine();
+                ListViewItem lvi = new ListViewItem(Project_name);
+                //Project end_date
+                string Project_end_date = streamR.ReadLine();
+                lvi.SubItems.Add(Project_end_date);
+                lvi.ImageIndex = 0;
+
+                string Project_number = streamR.ReadLine();
+                string Project_path = streamR.ReadLine();
+                string Project_start_date = streamR.ReadLine();
+
+                tempPs = new ProjectStatus(Project_name, Project_end_date,
+                    Project_number, Project_path, Project_start_date);
+                projectList.Add(tempPs);
+                listView_Project_1.Items.Add(lvi);
+                panel_Project_View.Update();
+            }));
+        }
+
+        private void Approved()
+        {
+            //Find Pno, and Pname, p_start_date, p_end_date, Ppath and send to Client at Server
+            this.Invoke(new MethodInvoker(delegate ()
+            {
+                this.ClientSize = new System.Drawing.Size(530, 600);
+                textBox_ID.Text = "";
+                textBox_PW.Text = "";
+                panel_Login.Hide();
+                panel_Project_View.Show();
+                panel_Project_View.Update();
+            }));
         }
 
         private void button_Connect_Click(object sender, EventArgs e)
@@ -225,14 +273,6 @@ namespace Project_Client
             return;
         }
 
-        private void Form_Client_Load(object sender, EventArgs e)
-        {
-            textBox_IP.Text = "192.168.56.1";
-            textBox_Port.Text = "7111";
-            this.ClientSize = new System.Drawing.Size(500, 460);
-            //this.ClientSize = new System.Drawing.Size(300, 230);
-        }
-
         private void button_Create_Project_Click(object sender, EventArgs e)
         {
             //새로운 폼을 띄워 함께 진행할 사람을 추가 시키는 형태로 작성할 것.
@@ -246,21 +286,30 @@ namespace Project_Client
 
         private void button_Project_Open_Click(object sender, EventArgs e)
         {
+            streamW.WriteLine("Project_Open");
+            streamW.Flush();
+
             //save Selected item's index
             var index_Sel_Columns = listView_Project_1.SelectedIndices;
-
             int index = index_Sel_Columns[0];
-
             //get name
             string Project_Name = listView_Project_1.Items[index].SubItems[0].Text;
             string Project_Number = listView_Project_1.Items[index].SubItems[1].Text;
             MessageBox.Show("Project_name : " + Project_Name.Trim() + "\nProject_Number : " + Project_Number.Trim());
-            //sql을 이용한 해당 Project Name과 Project Number을 이용해서 해당 Project Path찾기
-            //string query = "select Ppath from PROJECT where Pname ='" + Project_Name.Trim() + "'and Pno = '" + Project_Number.Text.Trim() + "'";
-            //Ppath를 서버로 전송 해당 경로에 있는 파일을 모두 불러와서 도식(ListView_Tile)
-            //도식이후 파일 타입 : txt, jpeg, zip, 등등을 파악하여 imageList다르게 설정,
-            //다운로드 버튼은 모두 작동, Double Click의 경우 txt일경우에 메모장을 띄울 수 있나?
-            //이미지도 Double Click의 경우 다르게 해보던지요..
+            query = "select Ppath from PROJECT where Pname ='" + Project_Name.Trim() + "'and Pno = '" + Project_Number.Trim() + "'";
+            
+            //send query to Server
+            streamW.WriteLine(query.ToString());
+            streamW.Flush();
+
+        }
+
+        private void Form_Client_Load(object sender, EventArgs e)
+        {
+            textBox_IP.Text = "192.168.56.1";
+            textBox_Port.Text = "7111";
+            this.ClientSize = new System.Drawing.Size(500, 460);
+            //this.ClientSize = new System.Drawing.Size(300, 230);
         }
 
         public Form_Client()

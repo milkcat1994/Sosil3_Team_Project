@@ -55,6 +55,7 @@
             this.button_Delete_Project = new System.Windows.Forms.Button();
             this.button_Create_Project = new System.Windows.Forms.Button();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.panel_Project_File_List = new System.Windows.Forms.FlowLayoutPanel();
             this.panel_ID.SuspendLayout();
             this.panel_PW.SuspendLayout();
             this.panel_IP.SuspendLayout();
@@ -188,6 +189,7 @@
             // 
             // panel_Connect
             // 
+            this.panel_Connect.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel_Connect.Controls.Add(this.panel_IP);
             this.panel_Connect.Controls.Add(this.panel_Port);
             this.panel_Connect.Controls.Add(this.button_Connect);
@@ -198,6 +200,7 @@
             // 
             // panel_Login
             // 
+            this.panel_Login.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel_Login.Controls.Add(this.button_Login);
             this.panel_Login.Controls.Add(this.panel_ID);
             this.panel_Login.Controls.Add(this.panel_PW);
@@ -218,6 +221,7 @@
             // 
             // panel_Project_View
             // 
+            this.panel_Project_View.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel_Project_View.Controls.Add(this.textBox_log);
             this.panel_Project_View.Controls.Add(this.button_Calender);
             this.panel_Project_View.Controls.Add(this.button_Project_Open);
@@ -260,10 +264,10 @@
             // 
             this.listView_Project_1.Alignment = System.Windows.Forms.ListViewAlignment.Default;
             this.listView_Project_1.LargeImageList = this.imageList1;
-            this.listView_Project_1.Location = new System.Drawing.Point(6, 32);
+            this.listView_Project_1.Location = new System.Drawing.Point(-1, 32);
             this.listView_Project_1.MultiSelect = false;
             this.listView_Project_1.Name = "listView_Project_1";
-            this.listView_Project_1.Size = new System.Drawing.Size(454, 202);
+            this.listView_Project_1.Size = new System.Drawing.Size(460, 202);
             this.listView_Project_1.TabIndex = 0;
             this.listView_Project_1.TileSize = new System.Drawing.Size(210, 100);
             this.listView_Project_1.UseCompatibleStateImageBehavior = false;
@@ -300,11 +304,23 @@
             this.timer1.Enabled = true;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
+            // panel_Project_File_List
+            // 
+            this.panel_Project_File_List.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel_Project_File_List.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
+            this.panel_Project_File_List.Location = new System.Drawing.Point(12, 12);
+            this.panel_Project_File_List.Name = "panel_Project_File_List";
+            this.panel_Project_File_List.Size = new System.Drawing.Size(460, 368);
+            this.panel_Project_File_List.TabIndex = 5;
+            this.panel_Project_File_List.TabStop = true;
+            this.panel_Project_File_List.Visible = false;
+            // 
             // Form_Client
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(492, 505);
+            this.Controls.Add(this.panel_Project_File_List);
             this.Controls.Add(this.panel_Project_View);
             this.Controls.Add(this.panel_Login);
             this.Controls.Add(this.panel_Connect);
@@ -355,6 +371,7 @@
         private System.Windows.Forms.Button button_Project_Open;
         private System.Windows.Forms.TextBox textBox_log;
         private System.Windows.Forms.Timer timer1;
+        private System.Windows.Forms.FlowLayoutPanel panel_Project_File_List;
     }
 }
 
