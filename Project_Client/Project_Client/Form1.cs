@@ -88,7 +88,7 @@ namespace Project_Client
                     return;
                 }
 
-                //Music List를 Server Music List에 추가시켜줌
+                //Server의 Project List를 받아 Client Project List에 추가시켜줌
                 if (dataType.Equals("Project status"))
                 {
                     Task proStatus_Task = new Task(new Action(Add_ListView_Project_Status));
@@ -103,11 +103,18 @@ namespace Project_Client
                     Approved_Task.Start();
                     Approved_Task.Wait();
                 }
-                else if (dataType.Equals("View_Project_List"))
+                //At Open Project List
+                else if (dataType.Equals("File_List"))
                 {
-                    Task View_Project_List_Task = new Task(new Action(View_Project_List));
-                    View_Project_List_Task.Start();
-                    View_Project_List_Task.Wait();
+                    Task File_List_Task = new Task(new Action(File_List));
+                    File_List_Task.Start();
+                    File_List_Task.Wait();
+                }
+                else if (dataType.Equals("Down_Project_File"))
+                {
+                    //Task Down_Project_Task = new Task(new Action(Down_Project));
+                    //Down_Project_Task.Start();
+                    //Down_Project_Task.Wait();
                 }
                 //If it not find ID, PW in table -> Show a Message Box _ Error Message
                 else if (dataType.Equals("NotApproved"))
@@ -119,7 +126,37 @@ namespace Project_Client
             }
         }
 
-        private void View_Project_List()
+        private void File_List()
+        {
+            //sql을 이용한 해당 Project Name과 Project Number을 이용해서 해당 Project Path찾기
+            //Ppath를 서버로 전송 해당 경로에 있는 파일을 모두 불러와서 도식(ListView_Tile)
+            //도식이후 파일 타입 : txt, jpeg, zip, 등등을 파악하여 imageList다르게 설정,
+            //다운로드 버튼은 모두 작동, Double Click의 경우 txt일경우에 메모장을 띄울 수 있나?
+            //이미지도 Double Click의 경우 다르게 해보던지요..
+
+            //서버에서 button_Project_Open_Click 이함수에서 Write된것들 읽어서 처리하는부분
+            //넣고 나머지 FlowPanel에서 컨트롤들 추가해서 정렬 해봅시다.
+
+            //Find Pno, and Pname, p_start_date, p_end_date, Ppath and send to Client at Server
+            this.Invoke(new MethodInvoker(delegate ()
+            {
+                //File name
+                string File_name = streamR.ReadLine();
+                ListViewItem lvi = new ListViewItem(File_name);
+                //File type
+                string File_type = streamR.ReadLine();
+                lvi.SubItems.Add(File_type);
+                //File size
+                string File_size = streamR.ReadLine();
+                lvi.SubItems.Add(File_size);
+                lvi.ImageIndex = 0;
+                
+                listView_File_List.Items.Add(lvi);
+                panel_Project_File_View.Update();
+            }));
+        }
+        /*
+        private void Down_Project()
         {
             //sql을 이용한 해당 Project Name과 Project Number을 이용해서 해당 Project Path찾기
             //Ppath를 서버로 전송 해당 경로에 있는 파일을 모두 불러와서 도식(ListView_Tile)
@@ -134,14 +171,29 @@ namespace Project_Client
             //Find Pno, and Pname, p_start_date, p_end_date, Ppath and send to Client at Server
             this.Invoke(new MethodInvoker(delegate ()
             {
-                this.ClientSize = new System.Drawing.Size(530, 600);
-                textBox_ID.Text = "";
-                textBox_PW.Text = "";
-                panel_Project_View.Hide();
-                panel_Project_File_List.Show();
+                //receive query at Client
+                //파일 크기 수신
+                string tempString = streamR.ReadLine();
+                int fileLength = Convert.ToInt32(tempString);
+                int totalLength = 0;
+
+                //open and create storage Path
+                string storage_File = textBox_Storage_Path.Text.ToString() + "\\" + music_Name + ".mp3";
+                storage_File.Replace("\\", "\\\\");
+                FileStream stream = new FileStream(storage_File, FileMode.Create, FileAccess.Write);
+
+                BinaryWriter writer = new BinaryWriter(stream);
+                while (totalLength < fileLength)
+                {
+                    int receiveLength = Client.Receive(readBuffer);
+                    writer.Write(readBuffer, 0, receiveLength);
+                    totalLength += receiveLength;
+                }
+                stream.Close();
+                writer.Close();
             }));
         }
-
+        */
         private void Add_ListView_Project_Status()
         {
             this.Invoke(new MethodInvoker(delegate ()
@@ -151,12 +203,14 @@ namespace Project_Client
                 //Project name
                 string Project_name = streamR.ReadLine();
                 ListViewItem lvi = new ListViewItem(Project_name);
+                //Project number
+                string Project_number = streamR.ReadLine();
+                lvi.SubItems.Add(Project_number);
                 //Project end_date
                 string Project_end_date = streamR.ReadLine();
                 lvi.SubItems.Add(Project_end_date);
                 lvi.ImageIndex = 0;
 
-                string Project_number = streamR.ReadLine();
                 string Project_path = streamR.ReadLine();
                 string Project_start_date = streamR.ReadLine();
 
@@ -288,6 +342,8 @@ namespace Project_Client
         {
             streamW.WriteLine("Project_Open");
             streamW.Flush();
+            //Clear ex_List Information
+            listView_File_List.Clear();
 
             //save Selected item's index
             var index_Sel_Columns = listView_Project_1.SelectedIndices;
@@ -295,13 +351,22 @@ namespace Project_Client
             //get name
             string Project_Name = listView_Project_1.Items[index].SubItems[0].Text;
             string Project_Number = listView_Project_1.Items[index].SubItems[1].Text;
-            MessageBox.Show("Project_name : " + Project_Name.Trim() + "\nProject_Number : " + Project_Number.Trim());
-            query = "select Ppath from PROJECT where Pname ='" + Project_Name.Trim() + "'and Pno = '" + Project_Number.Trim() + "'";
+            string Project_End_Date = listView_Project_1.Items[index].SubItems[2].Text;
+            MessageBox.Show("Project_name : " + Project_Name.Trim() + "\nProject_Number : " + Project_Number.Trim()
+                + "Project_End_Date : " + Project_End_Date + "\n");
+            query = "select Ppath "
+                + "from PROJECT "
+                + "where Pname ='" + Project_Name.Trim() 
+                + "'and Pno = '" + Project_Number.Trim() + "'";
             
             //send query to Server
             streamW.WriteLine(query.ToString());
             streamW.Flush();
-
+            this.Invoke(new MethodInvoker(delegate ()
+            {
+                panel_Project_View.Hide();
+                panel_Project_File_View.Show();
+            }));
         }
 
         private void Form_Client_Load(object sender, EventArgs e)
@@ -318,6 +383,7 @@ namespace Project_Client
             panel_Connect.Show();
             panel_Login.Hide();
             panel_Project_View.Hide();
+            panel_Project_File_View.Hide();
             
             // 뷰모드 지정
             listView_Project_1.View = View.Tile;
@@ -327,6 +393,7 @@ namespace Project_Client
 
             // 컬럼명과 컬럼사이즈 지정
             listView_Project_1.Columns.Add("Project_Name", 30, HorizontalAlignment.Left);
+            listView_Project_1.Columns.Add("Project_Number", 3, HorizontalAlignment.Left);
             listView_Project_1.Columns.Add("Project_End_Date", 10, HorizontalAlignment.Left);
             timer1.Start();
         }
@@ -336,5 +403,13 @@ namespace Project_Client
             //textBox1.Text = (testnubmer++).ToString();
         }
 
+        private void button_Back_View_Click(object sender, EventArgs e)
+        {
+            this.Invoke(new MethodInvoker(delegate ()
+            {
+                panel_Project_File_View.Hide();
+                panel_Project_View.Show();
+            }));
+        }
     }
 }

@@ -173,12 +173,30 @@ namespace Project_Server
                     Task Login_Task = new Task(new Action(Decision_Approved));
                     Login_Task.Start();
                     Login_Task.Wait();
+                    Login_Task.Dispose();
                 }
                 else if (dataType.Equals("Project_Open"))
                 {
                     Task Project_Open_Task = new Task(new Action(Project_Open));
                     Project_Open_Task.Start();
                     Project_Open_Task.Wait();
+                    Project_Open_Task.Dispose();
+                }
+                else if (dataType.Equals("File_Open"))
+                {
+                    //Task가 수행하는 함수 수정 해야함
+                    Task File_Open_Task = new Task(new Action(File_Open));
+                    File_Open_Task.Start();
+                    File_Open_Task.Wait();
+                    File_Open_Task.Dispose();
+                }
+                else if (dataType.Equals("File_DownLoad"))
+                {
+                    //Task가 수행하는 함수 수정 해야함
+                    Task File_DownLoad_Task = new Task(new Action(Send_Project_file));
+                    File_DownLoad_Task.Start();
+                    File_DownLoad_Task.Wait();
+                    File_DownLoad_Task.Dispose();
                 }
                 else if (dataType.Equals("Client UpLoad"))
                 {
@@ -211,7 +229,7 @@ namespace Project_Server
                     //find and send ProjectStatus
                     textBox_Down_Up_Load_Log.AppendText("ProjectMenu <- request receive success\n");
 
-                    var Send_Project_Status_Task = Task<string>.Run(() => findProjectStatus(user_ID));
+                    var Send_Project_Status_Task = Task<string>.Run(() => FindProjectStatus(user_ID));
                         Send_Project_Status_Task.Wait();
                 }
                 else
@@ -224,7 +242,7 @@ namespace Project_Server
 
         }
 
-        private void findProjectStatus(string user_ID)
+        private void FindProjectStatus(string user_ID)
         {
             //Find Pname, Pno, Ppath, p_start_date and p_end_date in PROJECT table
             query = "select Pname, Pno, Ppath, p_start_date, p_end_date"
@@ -247,10 +265,10 @@ namespace Project_Server
                 //Send 5-times
                 //Send Project name
                 streamW.WriteLine(dt.Rows[i]["Pname"].ToString());
-                //Send Project end_date
-                streamW.WriteLine(dt.Rows[i]["p_end_date"].ToString());
                 //Send Project number
                 streamW.WriteLine(dt.Rows[i]["Pno"].ToString());
+                //Send Project end_date
+                streamW.WriteLine(dt.Rows[i]["p_end_date"].ToString());
                 //Send Project path
                 streamW.WriteLine(dt.Rows[i]["Ppath"].ToString());
                 //Send Project start_date
@@ -261,6 +279,86 @@ namespace Project_Server
             //MessageBox.Show("send success!!!");
         }
 
+        //Send a File List to Client 
+        private void Send_Project_Entry(string Ppath)
+        {
+            //Find File Status in PROJECT
+            query = "select Fname, Ftype, Fsize"
+                + " from PROJECT AS pro, PROJECT_FILE_INFORM AS fin"
+                + " where pro.Pno = fin.Pno"
+                + " and pro.Ppath = '" + Ppath + "'";
+
+            //Adapter between query and DB
+            sqla = new SqlDataAdapter(query, sqlConnect);
+            //Make a DataTable Object
+            dt = new DataTable();
+            //find attribute your sql
+            sqla.Fill(dt);
+
+            for (int i = 0; i < dt.Rows.Count; i++)
+            {
+                //Send Project status
+                streamW.WriteLine("File_List");
+                streamW.Flush();
+                //Send 5-times
+                //Send Project name
+                streamW.WriteLine(dt.Rows[i]["Fname"].ToString());
+                //Send Project end_date
+                streamW.WriteLine(dt.Rows[i]["Ftype"].ToString());
+                //Send Project number
+                streamW.WriteLine(dt.Rows[i]["Fsize"].ToString());
+                streamW.Flush();
+                textBox_Down_Up_Load_Log.AppendText("Fname_" + dt.Rows[i]["Fname"] + "\n");
+            }
+        }
+
+        private void Send_Project_file()
+        {
+            //선택한 파일 이름, Pno를 클라이언트로 부터 받아서
+            //해당 파일이름, Pno를 이용하여 query문 작성, 찾아내서 해당 파일 전송
+            string storage_Path = Ppath;
+            //파일 정보 얻어오는 코드 + 폴더 경로 지정
+            //사용시 참조중 Shell32의 속성에서 interop를 false로 수정
+            ShellClass sc = new ShellClass();
+            folder = sc.NameSpace(storage_Path);
+            di = new DirectoryInfo(storage_Path);
+
+            //내부 파일 확인, .mp3의 확장명이 아니라면 listView에 저장하지 않음
+            textBox_Down_Up_Load_Log.AppendText("Send Start ProjectStatus to Client\n");
+            foreach (var item in di.GetFiles())
+            {
+                streamW.WriteLine("Down_Project_File");
+                streamW.Flush();
+                //find and send ProjectStatus
+
+                //여기서 foreach 돌면서 전송을 하여야함.
+                FileStream fileReader = new FileStream(Ppath, FileMode.Open, FileAccess.Read);
+
+                // 패킷 내용을 받는 크기 받는것 추가시키기
+                int fileLength = (int)fileReader.Length;
+                //파일 보낼 횟수
+                int count = fileLength / little_buf_size + 1;
+                //파일 읽기 위한 BinaryReader 객체 생성
+                BinaryReader reader = new BinaryReader(fileReader);
+                //파일 크기 전송 위해 바이트 배열로 전환
+                buffer = BitConverter.GetBytes(fileLength);
+                streamW.WriteLine(fileLength);
+                streamW.Flush();
+
+                //파일 전송 시작
+                for (int i = 0; i < count; i++)
+                {
+                    sendBuffer = reader.ReadBytes(little_buf_size);
+                    //읽은 길이만큼 클라로 전송
+                    Client.Send(sendBuffer);
+                }
+
+                fileReader.Close();
+                reader.Close();
+            }
+            textBox_Down_Up_Load_Log.AppendText("Send Success ProjectStatus to Client\n");
+        }
+
         private void Project_Open()
         {
             this.Invoke(new MethodInvoker(delegate ()
@@ -268,6 +366,7 @@ namespace Project_Server
                 //receive query at Client
                 string query = streamR.ReadLine();
 
+                textBox_Down_Up_Load_Log.AppendText( query + "\n");
                 //Adapter between query and DB
                 sqla = new SqlDataAdapter(query, sqlConnect);
                 //Make a DataTable Object
@@ -275,27 +374,26 @@ namespace Project_Server
                 //find attribute your sql
                 sqla.Fill(dt);
 
-                if (dt.Rows.Count == 1)
+                if (dt.Rows.Count >= 1)
                 {
-                    streamW.WriteLine("Approved");
-                    streamW.Flush();
-                    textBox_Down_Up_Load_Log.AppendText("Approved to Client\n");
-                    //find and send ProjectStatus
-                    textBox_Down_Up_Load_Log.AppendText("ProjectMenu <- request receive success\n");
-
-                    var Send_Project_Status_Task = Task<string>.Run(() => findProjectStatus(Parameter));
-                    Send_Project_Status_Task.Wait();
-
+                    textBox_Down_Up_Load_Log.AppendText("find success Project_File_Status\n");
+                    
+                    var Send_Project_Folder_Entry = Task<string>.Run(() => Send_Project_Entry(dt.Rows[0]["Ppath"].ToString()));
+                    Send_Project_Folder_Entry.Wait();
                 }
                 else
                 {
-                    textBox_Down_Up_Load_Log.AppendText("NotApproved to Client\n");
-                    streamW.WriteLine("NotApproved");
+                    textBox_Down_Up_Load_Log.AppendText("Not exist Project name : "+"\n");
+                    streamW.WriteLine("Not_Open_Project");
                     streamW.Flush();
                 }
             }));
         }
 
+        private void File_Open()
+        {
+
+        }
 
         //Set Storage_Path
         private void button_Find_Path_Click(object sender, EventArgs e)
@@ -314,8 +412,8 @@ namespace Project_Server
                 Client.Close();
                 m_blsClientOn = false;
                 button_Server_Start.Text = "Start";
-                label_Server_Status.Text = "Running";
-                this.label_Server_Status.ForeColor = Color.BlueViolet;
+                label_Server_Status.Text = "Not Running";
+                this.label_Server_Status.ForeColor = Color.Red;
                 textBox_Connect_Log.AppendText("Server Stopped\n");
             }
             /*
@@ -335,10 +433,9 @@ namespace Project_Server
 
                 //Log 추가 및 button의 text 수정
                 textBox_Connect_Log.AppendText("Server - Start\n");
-                textBox_Connect_Log.AppendText("Storage Path : " + this.storage_Path + "\n");
                 button_Server_Start.Text = "Stop";
-                label_Server_Status.Text = "Not Running";
-                this.label_Server_Status.ForeColor = Color.Red;
+                label_Server_Status.Text = "Running";
+                this.label_Server_Status.ForeColor = Color.BlueViolet;
             }
         }
 

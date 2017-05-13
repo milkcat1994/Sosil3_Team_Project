@@ -55,7 +55,15 @@
             this.button_Delete_Project = new System.Windows.Forms.Button();
             this.button_Create_Project = new System.Windows.Forms.Button();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.panel_Project_File_List = new System.Windows.Forms.FlowLayoutPanel();
+            this.panel_Project_File_View = new System.Windows.Forms.Panel();
+            this.button_File_DownLoad = new System.Windows.Forms.Button();
+            this.label_File_Down_Path = new System.Windows.Forms.Label();
+            this.textBox_File_Down_Path = new System.Windows.Forms.TextBox();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.button_Open = new System.Windows.Forms.Button();
+            this.listView_File_List = new System.Windows.Forms.ListView();
+            this.button_Back_View = new System.Windows.Forms.Button();
+            this.button_Refresh = new System.Windows.Forms.Button();
             this.panel_ID.SuspendLayout();
             this.panel_PW.SuspendLayout();
             this.panel_IP.SuspendLayout();
@@ -63,6 +71,8 @@
             this.panel_Connect.SuspendLayout();
             this.panel_Login.SuspendLayout();
             this.panel_Project_View.SuspendLayout();
+            this.panel_Project_File_View.SuspendLayout();
+            this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // panel_ID
@@ -230,7 +240,7 @@
             this.panel_Project_View.Controls.Add(this.button_Create_Project);
             this.panel_Project_View.Location = new System.Drawing.Point(12, 12);
             this.panel_Project_View.Name = "panel_Project_View";
-            this.panel_Project_View.Size = new System.Drawing.Size(460, 368);
+            this.panel_Project_View.Size = new System.Drawing.Size(460, 370);
             this.panel_Project_View.TabIndex = 3;
             // 
             // textBox_log
@@ -304,23 +314,102 @@
             this.timer1.Enabled = true;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
-            // panel_Project_File_List
+            // panel_Project_File_View
             // 
-            this.panel_Project_File_List.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel_Project_File_List.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-            this.panel_Project_File_List.Location = new System.Drawing.Point(12, 12);
-            this.panel_Project_File_List.Name = "panel_Project_File_List";
-            this.panel_Project_File_List.Size = new System.Drawing.Size(460, 368);
-            this.panel_Project_File_List.TabIndex = 5;
-            this.panel_Project_File_List.TabStop = true;
-            this.panel_Project_File_List.Visible = false;
+            this.panel_Project_File_View.Controls.Add(this.button_Refresh);
+            this.panel_Project_File_View.Controls.Add(this.button_Back_View);
+            this.panel_Project_File_View.Controls.Add(this.listView_File_List);
+            this.panel_Project_File_View.Controls.Add(this.button_Open);
+            this.panel_Project_File_View.Controls.Add(this.panel1);
+            this.panel_Project_File_View.Controls.Add(this.button_File_DownLoad);
+            this.panel_Project_File_View.Location = new System.Drawing.Point(12, 12);
+            this.panel_Project_File_View.Name = "panel_Project_File_View";
+            this.panel_Project_File_View.Size = new System.Drawing.Size(460, 370);
+            this.panel_Project_File_View.TabIndex = 0;
+            // 
+            // button_File_DownLoad
+            // 
+            this.button_File_DownLoad.Location = new System.Drawing.Point(355, 344);
+            this.button_File_DownLoad.Name = "button_File_DownLoad";
+            this.button_File_DownLoad.Size = new System.Drawing.Size(101, 23);
+            this.button_File_DownLoad.TabIndex = 0;
+            this.button_File_DownLoad.Text = "File DownLoad";
+            this.button_File_DownLoad.UseVisualStyleBackColor = true;
+            // 
+            // label_File_Down_Path
+            // 
+            this.label_File_Down_Path.AutoSize = true;
+            this.label_File_Down_Path.Dock = System.Windows.Forms.DockStyle.Left;
+            this.label_File_Down_Path.Location = new System.Drawing.Point(0, 0);
+            this.label_File_Down_Path.Name = "label_File_Down_Path";
+            this.label_File_Down_Path.Size = new System.Drawing.Size(76, 12);
+            this.label_File_Down_Path.TabIndex = 1;
+            this.label_File_Down_Path.Text = "Down_Path :";
+            // 
+            // textBox_File_Down_Path
+            // 
+            this.textBox_File_Down_Path.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.textBox_File_Down_Path.Location = new System.Drawing.Point(76, 0);
+            this.textBox_File_Down_Path.Name = "textBox_File_Down_Path";
+            this.textBox_File_Down_Path.Size = new System.Drawing.Size(372, 21);
+            this.textBox_File_Down_Path.TabIndex = 2;
+            // 
+            // panel1
+            // 
+            this.panel1.Controls.Add(this.textBox_File_Down_Path);
+            this.panel1.Controls.Add(this.label_File_Down_Path);
+            this.panel1.Location = new System.Drawing.Point(4, 311);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(448, 26);
+            this.panel1.TabIndex = 3;
+            // 
+            // button_Open
+            // 
+            this.button_Open.Location = new System.Drawing.Point(274, 343);
+            this.button_Open.Name = "button_Open";
+            this.button_Open.Size = new System.Drawing.Size(75, 23);
+            this.button_Open.TabIndex = 4;
+            this.button_Open.Text = "File Open";
+            this.button_Open.UseVisualStyleBackColor = true;
+            // 
+            // listView_File_List
+            // 
+            this.listView_File_List.Alignment = System.Windows.Forms.ListViewAlignment.Default;
+            this.listView_File_List.LargeImageList = this.imageList1;
+            this.listView_File_List.Location = new System.Drawing.Point(0, 0);
+            this.listView_File_List.MultiSelect = false;
+            this.listView_File_List.Name = "listView_File_List";
+            this.listView_File_List.Size = new System.Drawing.Size(460, 286);
+            this.listView_File_List.TabIndex = 5;
+            this.listView_File_List.TileSize = new System.Drawing.Size(210, 100);
+            this.listView_File_List.UseCompatibleStateImageBehavior = false;
+            this.listView_File_List.View = System.Windows.Forms.View.Tile;
+            // 
+            // button_Back_View
+            // 
+            this.button_Back_View.Location = new System.Drawing.Point(4, 343);
+            this.button_Back_View.Name = "button_Back_View";
+            this.button_Back_View.Size = new System.Drawing.Size(75, 23);
+            this.button_Back_View.TabIndex = 6;
+            this.button_Back_View.Text = "이전화면";
+            this.button_Back_View.UseVisualStyleBackColor = true;
+            this.button_Back_View.Click += new System.EventHandler(this.button_Back_View_Click);
+            // 
+            // button_Refresh
+            // 
+            this.button_Refresh.Location = new System.Drawing.Point(92, 344);
+            this.button_Refresh.Name = "button_Refresh";
+            this.button_Refresh.Size = new System.Drawing.Size(75, 23);
+            this.button_Refresh.TabIndex = 7;
+            this.button_Refresh.Text = "새로고침";
+            this.button_Refresh.UseVisualStyleBackColor = true;
             // 
             // Form_Client
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(492, 505);
-            this.Controls.Add(this.panel_Project_File_List);
+            this.Controls.Add(this.panel_Project_File_View);
             this.Controls.Add(this.panel_Project_View);
             this.Controls.Add(this.panel_Login);
             this.Controls.Add(this.panel_Connect);
@@ -340,6 +429,9 @@
             this.panel_Login.ResumeLayout(false);
             this.panel_Project_View.ResumeLayout(false);
             this.panel_Project_View.PerformLayout();
+            this.panel_Project_File_View.ResumeLayout(false);
+            this.panel1.ResumeLayout(false);
+            this.panel1.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -371,7 +463,15 @@
         private System.Windows.Forms.Button button_Project_Open;
         private System.Windows.Forms.TextBox textBox_log;
         private System.Windows.Forms.Timer timer1;
-        private System.Windows.Forms.FlowLayoutPanel panel_Project_File_List;
+        private System.Windows.Forms.Panel panel_Project_File_View;
+        private System.Windows.Forms.Button button_Open;
+        private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.TextBox textBox_File_Down_Path;
+        private System.Windows.Forms.Label label_File_Down_Path;
+        private System.Windows.Forms.Button button_File_DownLoad;
+        private System.Windows.Forms.Button button_Refresh;
+        private System.Windows.Forms.Button button_Back_View;
+        private System.Windows.Forms.ListView listView_File_List;
     }
 }
 
