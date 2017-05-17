@@ -65,9 +65,12 @@
             this.label_File_Down_Path = new System.Windows.Forms.Label();
             this.button_File_DownLoad = new System.Windows.Forms.Button();
             this.panel_File_View = new System.Windows.Forms.Panel();
-            this.textBox_Open_File_txt = new System.Windows.Forms.TextBox();
             this.button_Exit = new System.Windows.Forms.Button();
+            this.textBox_Open_File_txt = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
+            this.button_Path_Select = new System.Windows.Forms.Button();
+            this.folder_Browser_Dialog = new System.Windows.Forms.FolderBrowserDialog();
+            this.label2 = new System.Windows.Forms.Label();
             this.panel_ID.SuspendLayout();
             this.panel_PW.SuspendLayout();
             this.panel_IP.SuspendLayout();
@@ -321,6 +324,7 @@
             // 
             // panel_Project_File_View
             // 
+            this.panel_Project_File_View.Controls.Add(this.button_Path_Select);
             this.panel_Project_File_View.Controls.Add(this.button_Refresh);
             this.panel_Project_File_View.Controls.Add(this.button_Back_View);
             this.panel_Project_File_View.Controls.Add(this.listView_File_List);
@@ -381,7 +385,7 @@
             this.panel_Down_Path.Controls.Add(this.label_File_Down_Path);
             this.panel_Down_Path.Location = new System.Drawing.Point(4, 311);
             this.panel_Down_Path.Name = "panel_Down_Path";
-            this.panel_Down_Path.Size = new System.Drawing.Size(448, 26);
+            this.panel_Down_Path.Size = new System.Drawing.Size(345, 26);
             this.panel_Down_Path.TabIndex = 3;
             // 
             // textBox_File_Down_Path
@@ -389,7 +393,7 @@
             this.textBox_File_Down_Path.Dock = System.Windows.Forms.DockStyle.Fill;
             this.textBox_File_Down_Path.Location = new System.Drawing.Point(76, 0);
             this.textBox_File_Down_Path.Name = "textBox_File_Down_Path";
-            this.textBox_File_Down_Path.Size = new System.Drawing.Size(372, 21);
+            this.textBox_File_Down_Path.Size = new System.Drawing.Size(269, 21);
             this.textBox_File_Down_Path.TabIndex = 2;
             // 
             // label_File_Down_Path
@@ -416,18 +420,10 @@
             // 
             this.panel_File_View.Controls.Add(this.button_Exit);
             this.panel_File_View.Controls.Add(this.textBox_Open_File_txt);
-            this.panel_File_View.Location = new System.Drawing.Point(12, 12);
+            this.panel_File_View.Location = new System.Drawing.Point(-240, 12);
             this.panel_File_View.Name = "panel_File_View";
             this.panel_File_View.Size = new System.Drawing.Size(460, 370);
             this.panel_File_View.TabIndex = 4;
-            // 
-            // textBox_Open_File_txt
-            // 
-            this.textBox_Open_File_txt.Location = new System.Drawing.Point(3, 0);
-            this.textBox_Open_File_txt.Multiline = true;
-            this.textBox_Open_File_txt.Name = "textBox_Open_File_txt";
-            this.textBox_Open_File_txt.Size = new System.Drawing.Size(457, 332);
-            this.textBox_Open_File_txt.TabIndex = 5;
             // 
             // button_Exit
             // 
@@ -439,6 +435,17 @@
             this.button_Exit.UseVisualStyleBackColor = true;
             this.button_Exit.Click += new System.EventHandler(this.button_Exit_Click);
             // 
+            // textBox_Open_File_txt
+            // 
+            this.textBox_Open_File_txt.Cursor = System.Windows.Forms.Cursors.Arrow;
+            this.textBox_Open_File_txt.Location = new System.Drawing.Point(3, 0);
+            this.textBox_Open_File_txt.Multiline = true;
+            this.textBox_Open_File_txt.Name = "textBox_Open_File_txt";
+            this.textBox_Open_File_txt.ReadOnly = true;
+            this.textBox_Open_File_txt.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.textBox_Open_File_txt.Size = new System.Drawing.Size(457, 332);
+            this.textBox_Open_File_txt.TabIndex = 5;
+            // 
             // label1
             // 
             this.label1.AutoSize = true;
@@ -448,11 +455,31 @@
             this.label1.TabIndex = 5;
             this.label1.Text = "label1";
             // 
+            // button_Path_Select
+            // 
+            this.button_Path_Select.Location = new System.Drawing.Point(356, 308);
+            this.button_Path_Select.Name = "button_Path_Select";
+            this.button_Path_Select.Size = new System.Drawing.Size(100, 23);
+            this.button_Path_Select.TabIndex = 8;
+            this.button_Path_Select.Text = "Find Path";
+            this.button_Path_Select.UseVisualStyleBackColor = true;
+            this.button_Path_Select.Click += new System.EventHandler(this.button_Path_Select_Click);
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(10, 417);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(38, 12);
+            this.label2.TabIndex = 6;
+            this.label2.Text = "label2";
+            // 
             // Form_Client
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(492, 505);
+            this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.panel_File_View);
             this.Controls.Add(this.panel_Project_File_View);
@@ -525,6 +552,9 @@
         private System.Windows.Forms.Button button_Exit;
         private System.Windows.Forms.TextBox textBox_Open_File_txt;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Button button_Path_Select;
+        private System.Windows.Forms.FolderBrowserDialog folder_Browser_Dialog;
+        private System.Windows.Forms.Label label2;
     }
 }
 

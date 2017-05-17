@@ -109,8 +109,7 @@ namespace Project_Server
             port = 7111;
             this.textBox_Port.Text = port.ToString();
         }
-
-        //서버가 전송한 Music_File_List 받아서 Client쪽 ListView에 보여주기
+        
         public void receive_Thread()
         {
             try
@@ -129,8 +128,12 @@ namespace Project_Server
                 Client.Blocking = true;
                 //서버 첫 구동
                 //클라이언트가 없다면 text 출력
-                if (!this.m_blsClientOn)
-                    this.textBox_Connect_Log.AppendText("Waiting For Client Access...\n");
+
+                this.Invoke(new MethodInvoker(delegate ()
+                {
+                    if (!this.m_blsClientOn)
+                        this.textBox_Connect_Log.AppendText("Waiting For Client Access...\n");
+                }));
                 //SocketException
                 
                 point = new IPEndPoint(ip, port);
@@ -149,12 +152,15 @@ namespace Project_Server
             //클라이언트 접속시 실행
             if (Client.Connected)
             {
-                netStream = new NetworkStream(Client);
-                streamR = new StreamReader(netStream);
-                streamW = new StreamWriter(netStream);
+                this.Invoke(new MethodInvoker(delegate ()
+                {
+                    netStream = new NetworkStream(Client);
+                    streamR = new StreamReader(netStream);
+                    streamW = new StreamWriter(netStream);
 
-                this.m_blsClientOn = true;
-                this.textBox_Connect_Log.AppendText("Client Access!!!\n");
+                    this.m_blsClientOn = true;
+                    this.textBox_Connect_Log.AppendText("Client Access!!!\n");
+                }));
             }
 
             //Receive Client Request
@@ -162,10 +168,13 @@ namespace Project_Server
             {
                 try
                 {
-                    this.textBox_Down_Up_Load_Log.AppendText("waiting Client request\n");
-                    //파일의 타입을 맨 처음 전송 받음
-                    dataType = streamR.ReadLine();
-                    this.textBox_Down_Up_Load_Log.AppendText("Server dataType : " + dataType + "\n");
+                    this.Invoke(new MethodInvoker(delegate ()
+                    {
+                        this.textBox_Down_Up_Load_Log.AppendText("waiting Client request\n");
+                        //파일의 타입을 맨 처음 전송 받음
+                        dataType = streamR.ReadLine();
+                        this.textBox_Down_Up_Load_Log.AppendText("Server dataType : " + dataType + "\n");
+                    }));
                 }
                 catch
                 {
@@ -209,13 +218,11 @@ namespace Project_Server
                 }
                 else if (dataType.Equals("File_DownLoad"))
                 {
-                    /*
                     //Task가 수행하는 함수 수정 해야함
                     Task File_DownLoad_Task = new Task(new Action(Send_Project_file));
                     File_DownLoad_Task.Start();
                     File_DownLoad_Task.Wait();
                     File_DownLoad_Task.Dispose();
-                    */
                 }
                 else if (dataType.Equals("Client UpLoad"))
                 {
@@ -355,55 +362,72 @@ namespace Project_Server
             fileReader.Close();
             reader.Close();
         }
-
-        /*
+        
         private void Send_Project_file()
         {
-            //선택한 파일 이름, Pno를 클라이언트로 부터 받아서
-            //해당 파일이름, Pno를 이용하여 query문 작성, 찾아내서 해당 파일 전송
-            string storage_Path = Ppath;
-            //파일 정보 얻어오는 코드 + 폴더 경로 지정
-            //사용시 참조중 Shell32의 속성에서 interop를 false로 수정
-            ShellClass sc = new ShellClass();
-            folder = sc.NameSpace(storage_Path);
-            di = new DirectoryInfo(storage_Path);
-
-            //내부 파일 확인, .mp3의 확장명이 아니라면 listView에 저장하지 않음
-            textBox_Down_Up_Load_Log.AppendText("Send Start ProjectStatus to Client\n");
-            foreach (var item in di.GetFiles())
+            this.Invoke(new MethodInvoker(delegate ()
             {
-                streamW.WriteLine("Down_Project_File");
-                streamW.Flush();
-                //find and send ProjectStatus
+                //Receive Current Project Number
+                string tempString = streamR.ReadLine();
+                int Project_Number = Convert.ToInt32(tempString);
+                string File_Name = streamR.ReadLine();
 
-                //여기서 foreach 돌면서 전송을 하여야함.
-                FileStream fileReader = new FileStream(Ppath, FileMode.Open, FileAccess.Read);
+                query = "select Ppath "
+                    + "from PROJECT "
+                    + "where Pno = '" + Project_Number + "'";
 
-                // 패킷 내용을 받는 크기 받는것 추가시키기
-                int fileLength = (int)fileReader.Length;
-                //파일 보낼 횟수
-                int count = fileLength / little_buf_size + 1;
-                //파일 읽기 위한 BinaryReader 객체 생성
-                BinaryReader reader = new BinaryReader(fileReader);
-                //파일 크기 전송 위해 바이트 배열로 전환
-                buffer = BitConverter.GetBytes(fileLength);
-                streamW.WriteLine(fileLength);
-                streamW.Flush();
-
-                //파일 전송 시작
-                for (int i = 0; i < count; i++)
+                //Adapter between query and DB
+                sqla = new SqlDataAdapter(query, sqlConnect);
+                //Make a DataTable Object
+                dt = new DataTable();
+                //find attribute your sql
+                sqla.Fill(dt);
+                
+                string storage_Path = dt.Rows[0]["Ppath"].ToString();
+                //파일 정보 얻어오는 코드 + 폴더 경로 지정
+                //사용시 참조중 Shell32의 속성에서 interop를 false로 수정
+                ShellClass sc = new ShellClass();
+                folder = sc.NameSpace(storage_Path);
+                di = new DirectoryInfo(storage_Path);
+                
+                foreach (var item in di.GetFiles())
                 {
-                    sendBuffer = reader.ReadBytes(little_buf_size);
-                    //읽은 길이만큼 클라로 전송
-                    Client.Send(sendBuffer);
-                }
+                    streamW.WriteLine("Down_Project_File");
+                    streamW.Flush();
+                    //Send FileStatus
+                    streamW.WriteLine(item.Name);
+                    streamW.Flush();
+                    string requestedFile_Path = (storage_Path + "\\" + item.Name);
+                    //여기서 foreach 돌면서 전송을 하여야함.
+                    FileStream fileReader = new FileStream(requestedFile_Path, FileMode.Open, FileAccess.Read);
+                    textBox_Connect_Log.AppendText(requestedFile_Path);
+                    // 패킷 내용을 받는 크기 받는것 추가시키기
+                    int fileLength = (int)fileReader.Length;
+                    //파일 보낼 횟수
+                    int count = fileLength / little_buf_size + 1;
+                    //파일 읽기 위한 BinaryReader 객체 생성
+                    BinaryReader reader = new BinaryReader(fileReader);
+                    //파일 크기 전송 위해 바이트 배열로 전환
+                    buffer = BitConverter.GetBytes(fileLength);
+                    streamW.WriteLine(fileLength);
+                    streamW.Flush();
 
-                fileReader.Close();
-                reader.Close();
-            }
-            textBox_Down_Up_Load_Log.AppendText("Send Success ProjectStatus to Client\n");
+                    //파일 전송 시작
+                    for (int i = 0; i < count; i++)
+                    {
+                        sendBuffer = reader.ReadBytes(little_buf_size);
+                        //읽은 길이만큼 클라로 전송
+                        Client.Send(sendBuffer);
+                    }
+
+                    fileReader.Close();
+                    reader.Close();
+                    textBox_Down_Up_Load_Log.AppendText("Send File : " + requestedFile_Path + "\n");
+                }
+                
+            }));
+
         }
-        */
 
         private void Project_Open()
         {
@@ -458,37 +482,31 @@ namespace Project_Server
 
                 if (dt.Rows.Count >= 1)
                 {
+                    streamW.WriteLine("File_Open");
                     //Save File Path
                     string full_File_Path = dt.Rows[0]["Ppath"] + "\\" + File_Name;
                     full_File_Path = full_File_Path.Replace("\\","\\\\");
                     //var Send_File_Txt = Task<string>.Run(() => Send_Txt_File(full_File_Path));
                     //Send_File_Txt.Wait();
-                    MessageBox.Show(full_File_Path);
-                    FileStream fileReader = new FileStream(full_File_Path, FileMode.Open, FileAccess.Read);
+                    //FileStream fileReader = new FileStream(full_File_Path, FileMode.Open, FileAccess.Read);
+                    string Alltext = File.ReadAllText(full_File_Path);
 
-                    // 패킷 내용을 바일 크기 받는것 추가시키기
-                    int fileLength = (int)fileReader.Length;
+                    //file 내용의 길이 저장
+                    int fileLength = Alltext.Length;
                     //파일 보낼 횟수
                     int count = fileLength / little_buf_size + 1;
-                    //파일 읽기 위한 BinaryReader 객체 생성
-                    BinaryReader reader = new BinaryReader(fileReader);
                     //파일 크기 전송 위해 바이트 배열로 전환
-                    buffer = BitConverter.GetBytes(fileLength);
-                    streamW.WriteLine(fileLength);
+                    //buffer = BitConverter.GetBytes(fileLength);
+                    streamW.WriteLine(fileLength.ToString());
+                    textBox_Down_Up_Load_Log.AppendText(fileLength.ToString()+"\n");
                     streamW.Flush();
 
-                    //파일 전송 시작
-                    for (int i = 0; i < count; i++)
+                    for (int i =0;i<count; i++)
                     {
-                        sendBuffer = reader.ReadBytes(little_buf_size);
-                        //읽은 길이만큼 클라로 전송
+                        sendBuffer = Encoding.UTF8.GetBytes(Alltext);
                         Client.Send(sendBuffer);
-                        textBox_Down_Up_Load_Log.AppendText(sendBuffer.ToString());
+                        textBox_Down_Up_Load_Log.AppendText(Encoding.Default.GetString(sendBuffer));
                     }
-
-                    fileReader.Close();
-                    reader.Close();
-
                 }
                 else
                 {

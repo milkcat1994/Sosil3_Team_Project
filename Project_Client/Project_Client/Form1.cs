@@ -45,12 +45,7 @@ namespace Project_Client
         SqlConnection sqlConnect = new SqlConnection(@"Data Source = (LocalDB)\MSSQLLocalDB; AttachDbFilename=D:\school\3\Linux\Project\Project_Server\Server_DB.mdf;Integrated Security = True; Connect Timeout = 30");
         //SQL Line
         string query;
-        //Adapter between query and DB
-        SqlDataAdapter sqla = null;
-        //Make a DataTable Object
-        DataTable dt = null;
-
-        private BackgroundWorker bgw;
+        
 
         public struct ProjectStatus
         {
@@ -111,11 +106,17 @@ namespace Project_Client
                     File_List_Task.Start();
                     File_List_Task.Wait();
                 }
+                else if (dataType.Equals("File_Open"))
+                {
+                    Task File_Open_Task = new Task(new Action(receive_File_Txt));
+                    File_Open_Task.Start();
+                    File_Open_Task.Wait();
+                }
                 else if (dataType.Equals("Down_Project_File"))
                 {
-                    //Task Down_Project_Task = new Task(new Action(Down_Project));
-                    //Down_Project_Task.Start();
-                    //Down_Project_Task.Wait();
+                    Task Down_Project_Task = new Task(new Action(Down_Project));
+                    Down_Project_Task.Start();
+                    Down_Project_Task.Wait();
                 }
                 //If it not find ID, PW in table -> Show a Message Box _ Error Message
                 else if (dataType.Equals("NotApproved"))
@@ -151,7 +152,7 @@ namespace Project_Client
             }));
         }
 
-        /*
+        
         private void Down_Project()
         {
             //sql을 이용한 해당 Project Name과 Project Number을 이용해서 해당 Project Path찾기
@@ -169,12 +170,14 @@ namespace Project_Client
             {
                 //receive query at Client
                 //파일 크기 수신
+                string fileName = streamR.ReadLine();
                 string tempString = streamR.ReadLine();
                 int fileLength = Convert.ToInt32(tempString);
                 int totalLength = 0;
 
                 //open and create storage Path
-                string storage_File = textBox_Storage_Path.Text.ToString() + "\\" + music_Name + ".mp3";
+                string storage_File = textBox_File_Down_Path.Text.ToString() + "\\" + fileName;
+                label2.Text = storage_File;
                 storage_File.Replace("\\", "\\\\");
                 FileStream stream = new FileStream(storage_File, FileMode.Create, FileAccess.Write);
 
@@ -184,13 +187,13 @@ namespace Project_Client
                     int receiveLength = Client.Receive(readBuffer);
                     writer.Write(readBuffer, 0, receiveLength);
                     totalLength += receiveLength;
+                    label1.Text = totalLength.ToString();
                 }
                 stream.Close();
                 writer.Close();
             }));
         }
-        */
-
+        
         private void Add_ListView_Project_Status()
         {
             this.Invoke(new MethodInvoker(delegate ()
@@ -374,7 +377,7 @@ namespace Project_Client
 
         private void Form_Client_Load(object sender, EventArgs e)
         {
-            textBox_IP.Text = "192.168.43.97";
+            textBox_IP.Text = "192.168.1.105";
             textBox_Port.Text = "7111";
             textBox_ID.Text = "2013726091";
             textBox_PW.Text = "1234";
@@ -428,7 +431,7 @@ namespace Project_Client
         private void button_Open_Click(object sender, EventArgs e)
         {
             //save Selected item's index
-            var index_Sel_Columns = listView_Project_1.SelectedIndices;
+            var index_Sel_Columns = listView_File_List.SelectedIndices;
             int index = index_Sel_Columns[0];
             //[File name, type, size]
             string File_Name = listView_File_List.Items[index].SubItems[0].Text;
@@ -444,24 +447,6 @@ namespace Project_Client
                     //Send File Name
                     streamW.WriteLine(File_Name);
                     streamW.Flush();
-
-                    //파일 크기 수신
-                    string tempString = streamR.ReadLine();
-                    int fileLength = Convert.ToInt32(tempString);
-                    int totalLength = 0;
-
-                    //Read text in file
-                    while (totalLength < fileLength)
-                    {
-                        int receiveLength = Client.Receive(readBuffer);
-                        textBox_Open_File_txt.AppendText(readBuffer.ToString());
-                        totalLength += receiveLength;
-                        label1.Text = totalLength.ToString();
-                    }
-
-                    panel_Project_File_View.Hide();
-                    panel_File_View.Show();
-                    panel_File_View.Update();
                 }));
             }
             else
@@ -470,21 +455,107 @@ namespace Project_Client
             }
         }
 
+        private void receive_File_Txt()
+        {
+            this.Invoke(new MethodInvoker(delegate ()
+            {
+                //파일 크기 수신
+                string tempString = streamR.ReadLine();
+                MessageBox.Show(tempString);
+                int fileLength = Int32.Parse(tempString);
+                int totalLength = 0;
+
+                //Read text in file
+                while (totalLength < fileLength)
+                {
+                    int receiveLength = Client.Receive(readBuffer);
+                    textBox_Open_File_txt.AppendText(Encoding.Default.GetString(readBuffer));
+                    totalLength += receiveLength;
+                    label1.Text = totalLength.ToString();
+                }
+
+                panel_Project_File_View.Hide();
+                panel_File_View.Show();
+                panel_File_View.Update();
+            }));
+        }
+
         //File Download execute
         //File Down Path must needed
         private void button_File_DownLoad_Click(object sender, EventArgs e)
         {
-            
+            this.Invoke(new MethodInvoker(delegate ()
+            {
+                if (button_File_DownLoad.Equals(""))
+                {
+                    MessageBox.Show("DownLoad Path isn't it");
+                    return;
+                }
+                //save Selected item's index
+                var index_Sel_Columns = listView_File_List.SelectedIndices;
+                int index = index_Sel_Columns[0];
+                //[File name, type, size]
+                string File_Name = listView_File_List.Items[index].SubItems[0].Text;
+                string File_Type = listView_File_List.Items[index].SubItems[1].Text;
+
+                streamW.WriteLine("File_DownLoad");
+                streamW.Flush();
+                //Send current Project Number
+                streamW.WriteLine(Current_Project_Number.ToString());
+                //Send File Name
+                streamW.WriteLine(File_Name);
+                streamW.Flush();
+            }));
         }
 
         private void button_Refresh_Click(object sender, EventArgs e)
         {
+            streamW.WriteLine("Project_Open");
+            streamW.Flush();
+            //Clear ex_List Information
+            listView_File_List.Clear();
 
+            //save Selected item's index
+            var index_Sel_Columns = listView_Project_1.SelectedIndices;
+            int index = index_Sel_Columns[0];
+            //get name
+            string Project_Name = listView_Project_1.Items[index].SubItems[0].Text;
+            string Project_Number = listView_Project_1.Items[index].SubItems[1].Text;
+            //Save Current Project Number
+            Current_Project_Number = Convert.ToInt32(Project_Number);
+            string Project_End_Date = listView_Project_1.Items[index].SubItems[2].Text;
+
+            query = "select Ppath "
+                + "from PROJECT "
+                + "where Pname ='" + Project_Name.Trim()
+                + "'and Pno = '" + Project_Number.Trim() + "'";
+
+            //send query to Server
+            streamW.WriteLine(query.ToString());
+            streamW.Flush();
+            this.Invoke(new MethodInvoker(delegate ()
+            {
+                panel_Project_View.Update();
+            }));
         }
 
         private void button_Exit_Click(object sender, EventArgs e)
         {
+            this.Invoke(new MethodInvoker(delegate ()
+            {
+                textBox_Open_File_txt.Clear();
+                panel_Project_File_View.Show();
+                panel_File_View.Hide();
+            }));
+        }
 
+        private void button_Path_Select_Click(object sender, EventArgs e)
+        {
+            this.folder_Browser_Dialog.ShowDialog();
+            
+            //선택한 경로 textBox에 나타냄 및 get_File_Name 이용해 ListView에 나타냄
+            string file_Storage_Path = this.folder_Browser_Dialog.SelectedPath;
+            this.textBox_File_Down_Path.Text = file_Storage_Path;
         }
     }
 }
