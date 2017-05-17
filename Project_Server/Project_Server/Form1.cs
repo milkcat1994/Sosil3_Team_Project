@@ -70,6 +70,12 @@ namespace Project_Server
         //Make a DataTable Object
         DataTable dt = null;
 
+        public class CustomException : Exception
+        {
+            public CustomException(String message) : base(message)
+            { }
+        }
+
         public Form_Server()
         {
             InitializeComponent();
@@ -85,7 +91,7 @@ namespace Project_Server
                 if (ip.AddressFamily == AddressFamily.InterNetwork)
                 {
                     WanIP = ip.ToString();
-                    this.textBox_Down_Up_Load_Log.AppendText( WanIP + "\n" );
+                    //this.textBox_Down_Up_Load_Log.AppendText( WanIP + "\n" );
                     //break;
                 }
             }
@@ -187,16 +193,29 @@ namespace Project_Server
                     //Task가 수행하는 함수 수정 해야함
                     Task File_Open_Task = new Task(new Action(File_Open));
                     File_Open_Task.Start();
-                    File_Open_Task.Wait();
+                    try
+                    {
+                        File_Open_Task.Wait();
+                    }
+                    catch (AggregateException ae)
+                    {
+                        foreach (var e in ae.InnerExceptions)
+                        {
+                            // Handle the custom exception.
+                           Console.WriteLine(e.Message);
+                        }
+                    }
                     File_Open_Task.Dispose();
                 }
                 else if (dataType.Equals("File_DownLoad"))
                 {
+                    /*
                     //Task가 수행하는 함수 수정 해야함
                     Task File_DownLoad_Task = new Task(new Action(Send_Project_file));
                     File_DownLoad_Task.Start();
                     File_DownLoad_Task.Wait();
                     File_DownLoad_Task.Dispose();
+                    */
                 }
                 else if (dataType.Equals("Client UpLoad"))
                 {
@@ -239,7 +258,6 @@ namespace Project_Server
                     streamW.Flush();
                 }
             }));
-
         }
 
         private void FindProjectStatus(string user_ID)
@@ -276,7 +294,6 @@ namespace Project_Server
                 streamW.Flush();
                 textBox_Down_Up_Load_Log.AppendText("Pname_" + dt.Rows[i]["Pname"] + "\n");
             }
-            //MessageBox.Show("send success!!!");
         }
 
         //Send a File List to Client 
@@ -312,6 +329,34 @@ namespace Project_Server
             }
         }
 
+        private void Send_Txt_File(string full_File_Path)
+        {
+            FileStream fileReader = new FileStream(full_File_Path, FileMode.Open, FileAccess.Read);
+
+            // 패킷 내용을 바일 크기 받는것 추가시키기
+            int fileLength = (int)fileReader.Length;
+            //파일 보낼 횟수
+            int count = fileLength / little_buf_size + 1;
+            //파일 읽기 위한 BinaryReader 객체 생성
+            BinaryReader reader = new BinaryReader(fileReader);
+            //파일 크기 전송 위해 바이트 배열로 전환
+            buffer = BitConverter.GetBytes(fileLength);
+            streamW.WriteLine(fileLength);
+            streamW.Flush();
+
+            //파일 전송 시작
+            for (int i = 0; i < count; i++)
+            {
+                sendBuffer = reader.ReadBytes(little_buf_size);
+                //읽은 길이만큼 클라로 전송
+                Client.Send(sendBuffer);
+            }
+
+            fileReader.Close();
+            reader.Close();
+        }
+
+        /*
         private void Send_Project_file()
         {
             //선택한 파일 이름, Pno를 클라이언트로 부터 받아서
@@ -358,6 +403,7 @@ namespace Project_Server
             }
             textBox_Down_Up_Load_Log.AppendText("Send Success ProjectStatus to Client\n");
         }
+        */
 
         private void Project_Open()
         {
@@ -376,8 +422,8 @@ namespace Project_Server
 
                 if (dt.Rows.Count >= 1)
                 {
+                    //Send Project Status to Client
                     textBox_Down_Up_Load_Log.AppendText("find success Project_File_Status\n");
-                    
                     var Send_Project_Folder_Entry = Task<string>.Run(() => Send_Project_Entry(dt.Rows[0]["Ppath"].ToString()));
                     Send_Project_Folder_Entry.Wait();
                 }
@@ -392,7 +438,63 @@ namespace Project_Server
 
         private void File_Open()
         {
+            this.Invoke(new MethodInvoker(delegate ()
+            {
+                //Receive Current Project Number
+                string tempString = streamR.ReadLine();
+                int Project_Number = Convert.ToInt32(tempString);
+                string File_Name = streamR.ReadLine();
 
+                query = "select Ppath "
+                    + "from PROJECT "
+                    + "where Pno = '" + Project_Number + "'";
+
+                //Adapter between query and DB
+                sqla = new SqlDataAdapter(query, sqlConnect);
+                //Make a DataTable Object
+                dt = new DataTable();
+                //find attribute your sql
+                sqla.Fill(dt);
+
+                if (dt.Rows.Count >= 1)
+                {
+                    //Save File Path
+                    string full_File_Path = dt.Rows[0]["Ppath"] + "\\" + File_Name;
+                    full_File_Path = full_File_Path.Replace("\\","\\\\");
+                    //var Send_File_Txt = Task<string>.Run(() => Send_Txt_File(full_File_Path));
+                    //Send_File_Txt.Wait();
+                    MessageBox.Show(full_File_Path);
+                    FileStream fileReader = new FileStream(full_File_Path, FileMode.Open, FileAccess.Read);
+
+                    // 패킷 내용을 바일 크기 받는것 추가시키기
+                    int fileLength = (int)fileReader.Length;
+                    //파일 보낼 횟수
+                    int count = fileLength / little_buf_size + 1;
+                    //파일 읽기 위한 BinaryReader 객체 생성
+                    BinaryReader reader = new BinaryReader(fileReader);
+                    //파일 크기 전송 위해 바이트 배열로 전환
+                    buffer = BitConverter.GetBytes(fileLength);
+                    streamW.WriteLine(fileLength);
+                    streamW.Flush();
+
+                    //파일 전송 시작
+                    for (int i = 0; i < count; i++)
+                    {
+                        sendBuffer = reader.ReadBytes(little_buf_size);
+                        //읽은 길이만큼 클라로 전송
+                        Client.Send(sendBuffer);
+                        textBox_Down_Up_Load_Log.AppendText(sendBuffer.ToString());
+                    }
+
+                    fileReader.Close();
+                    reader.Close();
+
+                }
+                else
+                {
+                    textBox_Down_Up_Load_Log.AppendText("Not exist File Name  and number : \n");
+                }
+            }));
         }
 
         //Set Storage_Path

@@ -56,14 +56,18 @@
             this.button_Create_Project = new System.Windows.Forms.Button();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.panel_Project_File_View = new System.Windows.Forms.Panel();
-            this.button_File_DownLoad = new System.Windows.Forms.Button();
-            this.label_File_Down_Path = new System.Windows.Forms.Label();
-            this.textBox_File_Down_Path = new System.Windows.Forms.TextBox();
-            this.panel1 = new System.Windows.Forms.Panel();
-            this.button_Open = new System.Windows.Forms.Button();
-            this.listView_File_List = new System.Windows.Forms.ListView();
-            this.button_Back_View = new System.Windows.Forms.Button();
             this.button_Refresh = new System.Windows.Forms.Button();
+            this.button_Back_View = new System.Windows.Forms.Button();
+            this.listView_File_List = new System.Windows.Forms.ListView();
+            this.button_Open = new System.Windows.Forms.Button();
+            this.panel_Down_Path = new System.Windows.Forms.Panel();
+            this.textBox_File_Down_Path = new System.Windows.Forms.TextBox();
+            this.label_File_Down_Path = new System.Windows.Forms.Label();
+            this.button_File_DownLoad = new System.Windows.Forms.Button();
+            this.panel_File_View = new System.Windows.Forms.Panel();
+            this.textBox_Open_File_txt = new System.Windows.Forms.TextBox();
+            this.button_Exit = new System.Windows.Forms.Button();
+            this.label1 = new System.Windows.Forms.Label();
             this.panel_ID.SuspendLayout();
             this.panel_PW.SuspendLayout();
             this.panel_IP.SuspendLayout();
@@ -72,7 +76,8 @@
             this.panel_Login.SuspendLayout();
             this.panel_Project_View.SuspendLayout();
             this.panel_Project_File_View.SuspendLayout();
-            this.panel1.SuspendLayout();
+            this.panel_Down_Path.SuspendLayout();
+            this.panel_File_View.SuspendLayout();
             this.SuspendLayout();
             // 
             // panel_ID
@@ -320,57 +325,32 @@
             this.panel_Project_File_View.Controls.Add(this.button_Back_View);
             this.panel_Project_File_View.Controls.Add(this.listView_File_List);
             this.panel_Project_File_View.Controls.Add(this.button_Open);
-            this.panel_Project_File_View.Controls.Add(this.panel1);
+            this.panel_Project_File_View.Controls.Add(this.panel_Down_Path);
             this.panel_Project_File_View.Controls.Add(this.button_File_DownLoad);
             this.panel_Project_File_View.Location = new System.Drawing.Point(12, 12);
             this.panel_Project_File_View.Name = "panel_Project_File_View";
             this.panel_Project_File_View.Size = new System.Drawing.Size(460, 370);
             this.panel_Project_File_View.TabIndex = 0;
             // 
-            // button_File_DownLoad
+            // button_Refresh
             // 
-            this.button_File_DownLoad.Location = new System.Drawing.Point(355, 344);
-            this.button_File_DownLoad.Name = "button_File_DownLoad";
-            this.button_File_DownLoad.Size = new System.Drawing.Size(101, 23);
-            this.button_File_DownLoad.TabIndex = 0;
-            this.button_File_DownLoad.Text = "File DownLoad";
-            this.button_File_DownLoad.UseVisualStyleBackColor = true;
+            this.button_Refresh.Location = new System.Drawing.Point(92, 344);
+            this.button_Refresh.Name = "button_Refresh";
+            this.button_Refresh.Size = new System.Drawing.Size(75, 23);
+            this.button_Refresh.TabIndex = 7;
+            this.button_Refresh.Text = "새로고침";
+            this.button_Refresh.UseVisualStyleBackColor = true;
+            this.button_Refresh.Click += new System.EventHandler(this.button_Refresh_Click);
             // 
-            // label_File_Down_Path
+            // button_Back_View
             // 
-            this.label_File_Down_Path.AutoSize = true;
-            this.label_File_Down_Path.Dock = System.Windows.Forms.DockStyle.Left;
-            this.label_File_Down_Path.Location = new System.Drawing.Point(0, 0);
-            this.label_File_Down_Path.Name = "label_File_Down_Path";
-            this.label_File_Down_Path.Size = new System.Drawing.Size(76, 12);
-            this.label_File_Down_Path.TabIndex = 1;
-            this.label_File_Down_Path.Text = "Down_Path :";
-            // 
-            // textBox_File_Down_Path
-            // 
-            this.textBox_File_Down_Path.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.textBox_File_Down_Path.Location = new System.Drawing.Point(76, 0);
-            this.textBox_File_Down_Path.Name = "textBox_File_Down_Path";
-            this.textBox_File_Down_Path.Size = new System.Drawing.Size(372, 21);
-            this.textBox_File_Down_Path.TabIndex = 2;
-            // 
-            // panel1
-            // 
-            this.panel1.Controls.Add(this.textBox_File_Down_Path);
-            this.panel1.Controls.Add(this.label_File_Down_Path);
-            this.panel1.Location = new System.Drawing.Point(4, 311);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(448, 26);
-            this.panel1.TabIndex = 3;
-            // 
-            // button_Open
-            // 
-            this.button_Open.Location = new System.Drawing.Point(274, 343);
-            this.button_Open.Name = "button_Open";
-            this.button_Open.Size = new System.Drawing.Size(75, 23);
-            this.button_Open.TabIndex = 4;
-            this.button_Open.Text = "File Open";
-            this.button_Open.UseVisualStyleBackColor = true;
+            this.button_Back_View.Location = new System.Drawing.Point(4, 343);
+            this.button_Back_View.Name = "button_Back_View";
+            this.button_Back_View.Size = new System.Drawing.Size(75, 23);
+            this.button_Back_View.TabIndex = 6;
+            this.button_Back_View.Text = "이전화면";
+            this.button_Back_View.UseVisualStyleBackColor = true;
+            this.button_Back_View.Click += new System.EventHandler(this.button_Back_View_Click);
             // 
             // listView_File_List
             // 
@@ -385,30 +365,96 @@
             this.listView_File_List.UseCompatibleStateImageBehavior = false;
             this.listView_File_List.View = System.Windows.Forms.View.Tile;
             // 
-            // button_Back_View
+            // button_Open
             // 
-            this.button_Back_View.Location = new System.Drawing.Point(4, 343);
-            this.button_Back_View.Name = "button_Back_View";
-            this.button_Back_View.Size = new System.Drawing.Size(75, 23);
-            this.button_Back_View.TabIndex = 6;
-            this.button_Back_View.Text = "이전화면";
-            this.button_Back_View.UseVisualStyleBackColor = true;
-            this.button_Back_View.Click += new System.EventHandler(this.button_Back_View_Click);
+            this.button_Open.Location = new System.Drawing.Point(274, 343);
+            this.button_Open.Name = "button_Open";
+            this.button_Open.Size = new System.Drawing.Size(75, 23);
+            this.button_Open.TabIndex = 4;
+            this.button_Open.Text = "File Open";
+            this.button_Open.UseVisualStyleBackColor = true;
+            this.button_Open.Click += new System.EventHandler(this.button_Open_Click);
             // 
-            // button_Refresh
+            // panel_Down_Path
             // 
-            this.button_Refresh.Location = new System.Drawing.Point(92, 344);
-            this.button_Refresh.Name = "button_Refresh";
-            this.button_Refresh.Size = new System.Drawing.Size(75, 23);
-            this.button_Refresh.TabIndex = 7;
-            this.button_Refresh.Text = "새로고침";
-            this.button_Refresh.UseVisualStyleBackColor = true;
+            this.panel_Down_Path.Controls.Add(this.textBox_File_Down_Path);
+            this.panel_Down_Path.Controls.Add(this.label_File_Down_Path);
+            this.panel_Down_Path.Location = new System.Drawing.Point(4, 311);
+            this.panel_Down_Path.Name = "panel_Down_Path";
+            this.panel_Down_Path.Size = new System.Drawing.Size(448, 26);
+            this.panel_Down_Path.TabIndex = 3;
+            // 
+            // textBox_File_Down_Path
+            // 
+            this.textBox_File_Down_Path.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.textBox_File_Down_Path.Location = new System.Drawing.Point(76, 0);
+            this.textBox_File_Down_Path.Name = "textBox_File_Down_Path";
+            this.textBox_File_Down_Path.Size = new System.Drawing.Size(372, 21);
+            this.textBox_File_Down_Path.TabIndex = 2;
+            // 
+            // label_File_Down_Path
+            // 
+            this.label_File_Down_Path.AutoSize = true;
+            this.label_File_Down_Path.Dock = System.Windows.Forms.DockStyle.Left;
+            this.label_File_Down_Path.Location = new System.Drawing.Point(0, 0);
+            this.label_File_Down_Path.Name = "label_File_Down_Path";
+            this.label_File_Down_Path.Size = new System.Drawing.Size(76, 12);
+            this.label_File_Down_Path.TabIndex = 1;
+            this.label_File_Down_Path.Text = "Down_Path :";
+            // 
+            // button_File_DownLoad
+            // 
+            this.button_File_DownLoad.Location = new System.Drawing.Point(355, 344);
+            this.button_File_DownLoad.Name = "button_File_DownLoad";
+            this.button_File_DownLoad.Size = new System.Drawing.Size(101, 23);
+            this.button_File_DownLoad.TabIndex = 0;
+            this.button_File_DownLoad.Text = "File DownLoad";
+            this.button_File_DownLoad.UseVisualStyleBackColor = true;
+            this.button_File_DownLoad.Click += new System.EventHandler(this.button_File_DownLoad_Click);
+            // 
+            // panel_File_View
+            // 
+            this.panel_File_View.Controls.Add(this.button_Exit);
+            this.panel_File_View.Controls.Add(this.textBox_Open_File_txt);
+            this.panel_File_View.Location = new System.Drawing.Point(12, 12);
+            this.panel_File_View.Name = "panel_File_View";
+            this.panel_File_View.Size = new System.Drawing.Size(460, 370);
+            this.panel_File_View.TabIndex = 4;
+            // 
+            // textBox_Open_File_txt
+            // 
+            this.textBox_Open_File_txt.Location = new System.Drawing.Point(3, 0);
+            this.textBox_Open_File_txt.Multiline = true;
+            this.textBox_Open_File_txt.Name = "textBox_Open_File_txt";
+            this.textBox_Open_File_txt.Size = new System.Drawing.Size(457, 332);
+            this.textBox_Open_File_txt.TabIndex = 5;
+            // 
+            // button_Exit
+            // 
+            this.button_Exit.Location = new System.Drawing.Point(346, 344);
+            this.button_Exit.Name = "button_Exit";
+            this.button_Exit.Size = new System.Drawing.Size(111, 23);
+            this.button_Exit.TabIndex = 6;
+            this.button_Exit.Text = "Exit";
+            this.button_Exit.UseVisualStyleBackColor = true;
+            this.button_Exit.Click += new System.EventHandler(this.button_Exit_Click);
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(10, 395);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(38, 12);
+            this.label1.TabIndex = 5;
+            this.label1.Text = "label1";
             // 
             // Form_Client
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(492, 505);
+            this.Controls.Add(this.label1);
+            this.Controls.Add(this.panel_File_View);
             this.Controls.Add(this.panel_Project_File_View);
             this.Controls.Add(this.panel_Project_View);
             this.Controls.Add(this.panel_Login);
@@ -430,9 +476,12 @@
             this.panel_Project_View.ResumeLayout(false);
             this.panel_Project_View.PerformLayout();
             this.panel_Project_File_View.ResumeLayout(false);
-            this.panel1.ResumeLayout(false);
-            this.panel1.PerformLayout();
+            this.panel_Down_Path.ResumeLayout(false);
+            this.panel_Down_Path.PerformLayout();
+            this.panel_File_View.ResumeLayout(false);
+            this.panel_File_View.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -465,13 +514,17 @@
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.Panel panel_Project_File_View;
         private System.Windows.Forms.Button button_Open;
-        private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.Panel panel_Down_Path;
         private System.Windows.Forms.TextBox textBox_File_Down_Path;
         private System.Windows.Forms.Label label_File_Down_Path;
         private System.Windows.Forms.Button button_File_DownLoad;
         private System.Windows.Forms.Button button_Refresh;
         private System.Windows.Forms.Button button_Back_View;
         private System.Windows.Forms.ListView listView_File_List;
+        private System.Windows.Forms.Panel panel_File_View;
+        private System.Windows.Forms.Button button_Exit;
+        private System.Windows.Forms.TextBox textBox_Open_File_txt;
+        private System.Windows.Forms.Label label1;
     }
 }
 

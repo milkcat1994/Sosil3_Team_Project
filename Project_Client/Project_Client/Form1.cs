@@ -34,7 +34,7 @@ namespace Project_Client
         private byte[] readBuffer = new byte[little_buf_size * 1];
         byte[] buffer = new byte[256];
         private string dataType;    //데이터 타입
-
+        
         //server와의 연결이 되었는지 확인
         private bool m_blsConnect = false;
 
@@ -69,6 +69,7 @@ namespace Project_Client
                 this.start_date = start_date;
             }
         }
+        private int Current_Project_Number;
 
         public List<ProjectStatus> projectList = new List<ProjectStatus>();
 
@@ -126,18 +127,12 @@ namespace Project_Client
             }
         }
 
+        //listView_File_LList[File name, type, size]
         private void File_List()
         {
-            //sql을 이용한 해당 Project Name과 Project Number을 이용해서 해당 Project Path찾기
             //Ppath를 서버로 전송 해당 경로에 있는 파일을 모두 불러와서 도식(ListView_Tile)
             //도식이후 파일 타입 : txt, jpeg, zip, 등등을 파악하여 imageList다르게 설정,
-            //다운로드 버튼은 모두 작동, Double Click의 경우 txt일경우에 메모장을 띄울 수 있나?
-            //이미지도 Double Click의 경우 다르게 해보던지요..
-
-            //서버에서 button_Project_Open_Click 이함수에서 Write된것들 읽어서 처리하는부분
-            //넣고 나머지 FlowPanel에서 컨트롤들 추가해서 정렬 해봅시다.
-
-            //Find Pno, and Pname, p_start_date, p_end_date, Ppath and send to Client at Server
+            //Save File_name, File_type, File_Size, add File_List_View
             this.Invoke(new MethodInvoker(delegate ()
             {
                 //File name
@@ -155,6 +150,7 @@ namespace Project_Client
                 panel_Project_File_View.Update();
             }));
         }
+
         /*
         private void Down_Project()
         {
@@ -194,6 +190,7 @@ namespace Project_Client
             }));
         }
         */
+
         private void Add_ListView_Project_Status()
         {
             this.Invoke(new MethodInvoker(delegate ()
@@ -214,9 +211,11 @@ namespace Project_Client
                 string Project_path = streamR.ReadLine();
                 string Project_start_date = streamR.ReadLine();
 
+                //Add Status in ProjectList Arrary List
                 tempPs = new ProjectStatus(Project_name, Project_end_date,
                     Project_number, Project_path, Project_start_date);
                 projectList.Add(tempPs);
+                //append in ListView
                 listView_Project_1.Items.Add(lvi);
                 panel_Project_View.Update();
             }));
@@ -296,12 +295,15 @@ namespace Project_Client
         }
         */
 
+        //이후에는 서버에서 쿼리를 수행하는 것으로 수정할것,
+        //Client에서는 ID, PW만 전송하여 접속 결과만 받아야함
         private void button_Login_Click(object sender, EventArgs e)
         {
             streamW.WriteLine("Login");
             streamW.Flush();
             //If you want to select attribute in Server DB
-            query = "select Name from dbo.USERS where ID ='" + textBox_ID.Text.Trim() + "' and PW = '" + textBox_PW.Text.Trim() + "'";
+            query = "select Name from dbo.USERS where ID ='" 
+                + textBox_ID.Text.Trim() + "' and PW = '" + textBox_PW.Text.Trim() + "'";
             //send query to Server
             streamW.WriteLine(query.ToString());
             streamW.Flush();
@@ -351,9 +353,10 @@ namespace Project_Client
             //get name
             string Project_Name = listView_Project_1.Items[index].SubItems[0].Text;
             string Project_Number = listView_Project_1.Items[index].SubItems[1].Text;
+            //Save Current Project Number
+            Current_Project_Number = Convert.ToInt32(Project_Number);
             string Project_End_Date = listView_Project_1.Items[index].SubItems[2].Text;
-            MessageBox.Show("Project_name : " + Project_Name.Trim() + "\nProject_Number : " + Project_Number.Trim()
-                + "Project_End_Date : " + Project_End_Date + "\n");
+
             query = "select Ppath "
                 + "from PROJECT "
                 + "where Pname ='" + Project_Name.Trim() 
@@ -371,8 +374,10 @@ namespace Project_Client
 
         private void Form_Client_Load(object sender, EventArgs e)
         {
-            textBox_IP.Text = "192.168.56.1";
+            textBox_IP.Text = "192.168.43.97";
             textBox_Port.Text = "7111";
+            textBox_ID.Text = "2013726091";
+            textBox_PW.Text = "1234";
             this.ClientSize = new System.Drawing.Size(500, 460);
             //this.ClientSize = new System.Drawing.Size(300, 230);
         }
@@ -384,6 +389,7 @@ namespace Project_Client
             panel_Login.Hide();
             panel_Project_View.Hide();
             panel_Project_File_View.Hide();
+            panel_File_View.Hide();
             
             // 뷰모드 지정
             listView_Project_1.View = View.Tile;
@@ -395,6 +401,11 @@ namespace Project_Client
             listView_Project_1.Columns.Add("Project_Name", 30, HorizontalAlignment.Left);
             listView_Project_1.Columns.Add("Project_Number", 3, HorizontalAlignment.Left);
             listView_Project_1.Columns.Add("Project_End_Date", 10, HorizontalAlignment.Left);
+
+            listView_File_List.Columns.Add("File_Name", 30, HorizontalAlignment.Left);
+            listView_File_List.Columns.Add("File_type", 4, HorizontalAlignment.Left);
+            listView_File_List.Columns.Add("File_Size", 10, HorizontalAlignment.Left);
+
             timer1.Start();
         }
 
@@ -410,6 +421,70 @@ namespace Project_Client
                 panel_Project_File_View.Hide();
                 panel_Project_View.Show();
             }));
+        }
+
+        //확장자 명이 txt파일인 경우에만 실행, 아닐경우 에러메시지 도출
+        //execute Only "*.txt" file if not "*.txt" popup error Message
+        private void button_Open_Click(object sender, EventArgs e)
+        {
+            //save Selected item's index
+            var index_Sel_Columns = listView_Project_1.SelectedIndices;
+            int index = index_Sel_Columns[0];
+            //[File name, type, size]
+            string File_Name = listView_File_List.Items[index].SubItems[0].Text;
+            string File_Type = listView_File_List.Items[index].SubItems[1].Text;
+            if (File_Type.Trim().Equals("txt"))
+            {
+                this.Invoke(new MethodInvoker(delegate ()
+                {
+                    streamW.WriteLine("File_Open");
+                    streamW.Flush();
+                    //Send current Project Number
+                    streamW.WriteLine(Current_Project_Number.ToString());
+                    //Send File Name
+                    streamW.WriteLine(File_Name);
+                    streamW.Flush();
+
+                    //파일 크기 수신
+                    string tempString = streamR.ReadLine();
+                    int fileLength = Convert.ToInt32(tempString);
+                    int totalLength = 0;
+
+                    //Read text in file
+                    while (totalLength < fileLength)
+                    {
+                        int receiveLength = Client.Receive(readBuffer);
+                        textBox_Open_File_txt.AppendText(readBuffer.ToString());
+                        totalLength += receiveLength;
+                        label1.Text = totalLength.ToString();
+                    }
+
+                    panel_Project_File_View.Hide();
+                    panel_File_View.Show();
+                    panel_File_View.Update();
+                }));
+            }
+            else
+            {
+                MessageBox.Show("파일이 txt파일이 아닙니다." + File_Name + "\n" + File_Type);
+            }
+        }
+
+        //File Download execute
+        //File Down Path must needed
+        private void button_File_DownLoad_Click(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void button_Refresh_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button_Exit_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
