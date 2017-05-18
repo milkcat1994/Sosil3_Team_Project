@@ -236,10 +236,12 @@ namespace Project_Server
         {
             this.Invoke(new MethodInvoker(delegate ()
             {
-                string query = streamR.ReadLine();
-                //receive User ID at Client
                 string user_ID = streamR.ReadLine();
+                //receive User ID at Client
+                string user_PW = streamR.ReadLine();
 
+                query = "select Name from dbo.USERS where ID ='"
+                    + user_ID + "' and PW = '" + user_PW + "'";
                 //Adapter between query and DB
                 sqla = new SqlDataAdapter(query, sqlConnect);
                 //Make a DataTable Object
@@ -284,8 +286,8 @@ namespace Project_Server
 
             for (int i = 0; i < dt.Rows.Count; i++)
             {
-                //Send Project status
-                streamW.WriteLine("Project status");
+                //Send Project_Status
+                streamW.WriteLine("Project_Status");
                 streamW.Flush();
                 //Send 5-times
                 //Send Project name
@@ -321,7 +323,7 @@ namespace Project_Server
 
             for (int i = 0; i < dt.Rows.Count; i++)
             {
-                //Send Project status
+                //Send Project_Status
                 streamW.WriteLine("File_List");
                 streamW.Flush();
                 //Send 5-times
@@ -434,7 +436,13 @@ namespace Project_Server
             this.Invoke(new MethodInvoker(delegate ()
             {
                 //receive query at Client
-                string query = streamR.ReadLine();
+                string Pname = streamR.ReadLine();
+                string Pnumber = streamR.ReadLine();
+
+                query = "select Ppath "
+                    + "from PROJECT "
+                    + "where Pname ='" + Pname
+                    + "'and Pno = '" + Pnumber + "'";
 
                 textBox_Down_Up_Load_Log.AppendText( query + "\n");
                 //Adapter between query and DB

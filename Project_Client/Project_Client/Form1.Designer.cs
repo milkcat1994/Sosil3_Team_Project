@@ -50,12 +50,13 @@
             this.textBox_log = new System.Windows.Forms.TextBox();
             this.button_Calender = new System.Windows.Forms.Button();
             this.button_Project_Open = new System.Windows.Forms.Button();
-            this.listView_Project_1 = new System.Windows.Forms.ListView();
+            this.listView_ProjectList = new System.Windows.Forms.ListView();
             this.imageList1 = new System.Windows.Forms.ImageList(this.components);
             this.button_Delete_Project = new System.Windows.Forms.Button();
             this.button_Create_Project = new System.Windows.Forms.Button();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.panel_Project_File_View = new System.Windows.Forms.Panel();
+            this.button_Path_Select = new System.Windows.Forms.Button();
             this.button_Refresh = new System.Windows.Forms.Button();
             this.button_Back_View = new System.Windows.Forms.Button();
             this.listView_File_List = new System.Windows.Forms.ListView();
@@ -68,9 +69,10 @@
             this.button_Exit = new System.Windows.Forms.Button();
             this.textBox_Open_File_txt = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
-            this.button_Path_Select = new System.Windows.Forms.Button();
             this.folder_Browser_Dialog = new System.Windows.Forms.FolderBrowserDialog();
             this.label2 = new System.Windows.Forms.Label();
+            this.button_Logout = new System.Windows.Forms.Button();
+            this.button_Disconnect = new System.Windows.Forms.Button();
             this.panel_ID.SuspendLayout();
             this.panel_PW.SuspendLayout();
             this.panel_IP.SuspendLayout();
@@ -211,7 +213,7 @@
             this.panel_Connect.Controls.Add(this.panel_IP);
             this.panel_Connect.Controls.Add(this.panel_Port);
             this.panel_Connect.Controls.Add(this.button_Connect);
-            this.panel_Connect.Location = new System.Drawing.Point(12, 31);
+            this.panel_Connect.Location = new System.Drawing.Point(12, 12);
             this.panel_Connect.Name = "panel_Connect";
             this.panel_Connect.Size = new System.Drawing.Size(250, 140);
             this.panel_Connect.TabIndex = 2;
@@ -219,31 +221,33 @@
             // panel_Login
             // 
             this.panel_Login.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel_Login.Controls.Add(this.button_Disconnect);
             this.panel_Login.Controls.Add(this.button_Login);
             this.panel_Login.Controls.Add(this.panel_ID);
             this.panel_Login.Controls.Add(this.panel_PW);
-            this.panel_Login.Location = new System.Drawing.Point(12, 31);
+            this.panel_Login.Location = new System.Drawing.Point(12, 12);
             this.panel_Login.Name = "panel_Login";
             this.panel_Login.Size = new System.Drawing.Size(250, 140);
             this.panel_Login.TabIndex = 2;
             // 
             // button_Login
             // 
-            this.button_Login.Location = new System.Drawing.Point(132, 106);
+            this.button_Login.Location = new System.Drawing.Point(140, 106);
             this.button_Login.Name = "button_Login";
             this.button_Login.Size = new System.Drawing.Size(75, 23);
             this.button_Login.TabIndex = 3;
-            this.button_Login.Text = "로그인";
+            this.button_Login.Text = "LogIn";
             this.button_Login.UseVisualStyleBackColor = true;
             this.button_Login.Click += new System.EventHandler(this.button_Login_Click);
             // 
             // panel_Project_View
             // 
             this.panel_Project_View.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel_Project_View.Controls.Add(this.button_Logout);
             this.panel_Project_View.Controls.Add(this.textBox_log);
             this.panel_Project_View.Controls.Add(this.button_Calender);
             this.panel_Project_View.Controls.Add(this.button_Project_Open);
-            this.panel_Project_View.Controls.Add(this.listView_Project_1);
+            this.panel_Project_View.Controls.Add(this.listView_ProjectList);
             this.panel_Project_View.Controls.Add(this.button_Delete_Project);
             this.panel_Project_View.Controls.Add(this.button_Create_Project);
             this.panel_Project_View.Location = new System.Drawing.Point(12, 12);
@@ -278,18 +282,18 @@
             this.button_Project_Open.UseVisualStyleBackColor = true;
             this.button_Project_Open.Click += new System.EventHandler(this.button_Project_Open_Click);
             // 
-            // listView_Project_1
+            // listView_ProjectList
             // 
-            this.listView_Project_1.Alignment = System.Windows.Forms.ListViewAlignment.Default;
-            this.listView_Project_1.LargeImageList = this.imageList1;
-            this.listView_Project_1.Location = new System.Drawing.Point(-1, 32);
-            this.listView_Project_1.MultiSelect = false;
-            this.listView_Project_1.Name = "listView_Project_1";
-            this.listView_Project_1.Size = new System.Drawing.Size(460, 202);
-            this.listView_Project_1.TabIndex = 0;
-            this.listView_Project_1.TileSize = new System.Drawing.Size(210, 100);
-            this.listView_Project_1.UseCompatibleStateImageBehavior = false;
-            this.listView_Project_1.View = System.Windows.Forms.View.Tile;
+            this.listView_ProjectList.Alignment = System.Windows.Forms.ListViewAlignment.Default;
+            this.listView_ProjectList.LargeImageList = this.imageList1;
+            this.listView_ProjectList.Location = new System.Drawing.Point(-1, 32);
+            this.listView_ProjectList.MultiSelect = false;
+            this.listView_ProjectList.Name = "listView_ProjectList";
+            this.listView_ProjectList.Size = new System.Drawing.Size(460, 202);
+            this.listView_ProjectList.TabIndex = 0;
+            this.listView_ProjectList.TileSize = new System.Drawing.Size(210, 100);
+            this.listView_ProjectList.UseCompatibleStateImageBehavior = false;
+            this.listView_ProjectList.View = System.Windows.Forms.View.Tile;
             // 
             // imageList1
             // 
@@ -335,6 +339,16 @@
             this.panel_Project_File_View.Name = "panel_Project_File_View";
             this.panel_Project_File_View.Size = new System.Drawing.Size(460, 370);
             this.panel_Project_File_View.TabIndex = 0;
+            // 
+            // button_Path_Select
+            // 
+            this.button_Path_Select.Location = new System.Drawing.Point(356, 308);
+            this.button_Path_Select.Name = "button_Path_Select";
+            this.button_Path_Select.Size = new System.Drawing.Size(100, 23);
+            this.button_Path_Select.TabIndex = 8;
+            this.button_Path_Select.Text = "Find Path";
+            this.button_Path_Select.UseVisualStyleBackColor = true;
+            this.button_Path_Select.Click += new System.EventHandler(this.button_Path_Select_Click);
             // 
             // button_Refresh
             // 
@@ -420,7 +434,7 @@
             // 
             this.panel_File_View.Controls.Add(this.button_Exit);
             this.panel_File_View.Controls.Add(this.textBox_Open_File_txt);
-            this.panel_File_View.Location = new System.Drawing.Point(-240, 12);
+            this.panel_File_View.Location = new System.Drawing.Point(12, 12);
             this.panel_File_View.Name = "panel_File_View";
             this.panel_File_View.Size = new System.Drawing.Size(460, 370);
             this.panel_File_View.TabIndex = 4;
@@ -455,16 +469,6 @@
             this.label1.TabIndex = 5;
             this.label1.Text = "label1";
             // 
-            // button_Path_Select
-            // 
-            this.button_Path_Select.Location = new System.Drawing.Point(356, 308);
-            this.button_Path_Select.Name = "button_Path_Select";
-            this.button_Path_Select.Size = new System.Drawing.Size(100, 23);
-            this.button_Path_Select.TabIndex = 8;
-            this.button_Path_Select.Text = "Find Path";
-            this.button_Path_Select.UseVisualStyleBackColor = true;
-            this.button_Path_Select.Click += new System.EventHandler(this.button_Path_Select_Click);
-            // 
             // label2
             // 
             this.label2.AutoSize = true;
@@ -473,6 +477,26 @@
             this.label2.Size = new System.Drawing.Size(38, 12);
             this.label2.TabIndex = 6;
             this.label2.Text = "label2";
+            // 
+            // button_Logout
+            // 
+            this.button_Logout.Location = new System.Drawing.Point(213, 3);
+            this.button_Logout.Name = "button_Logout";
+            this.button_Logout.Size = new System.Drawing.Size(75, 23);
+            this.button_Logout.TabIndex = 9;
+            this.button_Logout.Text = "Logout";
+            this.button_Logout.UseVisualStyleBackColor = true;
+            this.button_Logout.Click += new System.EventHandler(this.button_Logout_Click);
+            // 
+            // button_Disconnect
+            // 
+            this.button_Disconnect.Location = new System.Drawing.Point(30, 106);
+            this.button_Disconnect.Name = "button_Disconnect";
+            this.button_Disconnect.Size = new System.Drawing.Size(85, 23);
+            this.button_Disconnect.TabIndex = 4;
+            this.button_Disconnect.Text = "DisConnect";
+            this.button_Disconnect.UseVisualStyleBackColor = true;
+            this.button_Disconnect.Click += new System.EventHandler(this.button_Disconnect_Click);
             // 
             // Form_Client
             // 
@@ -531,7 +555,7 @@
         private System.Windows.Forms.Panel panel_Login;
         private System.Windows.Forms.Button button_Login;
         private System.Windows.Forms.Panel panel_Project_View;
-        private System.Windows.Forms.ListView listView_Project_1;
+        private System.Windows.Forms.ListView listView_ProjectList;
         private System.Windows.Forms.ImageList imageList1;
         private System.Windows.Forms.Button button_Calender;
         private System.Windows.Forms.Button button_Delete_Project;
@@ -555,6 +579,8 @@
         private System.Windows.Forms.Button button_Path_Select;
         private System.Windows.Forms.FolderBrowserDialog folder_Browser_Dialog;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Button button_Logout;
+        private System.Windows.Forms.Button button_Disconnect;
     }
 }
 
