@@ -27,3 +27,8 @@
 -로그아웃 기능 구현
 -Client에서 해당 파일 다운로드 가능
 -query문 Server에서 수행되도록 수행
+
+##17-05-28
+-Project Create, Join, Leave 기능 구현
+-Client에서 원하는 Project에 파일 업로드 기능 구현
+*Project에 파일 추가시 게시자 정보 DataBase에 추가

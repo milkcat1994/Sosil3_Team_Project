@@ -50,9 +50,6 @@ namespace Project_Server
 
         //Define Thread Object
         private Thread m_Thread = null;
-        
-        //File storage_Path in server
-        string storage_Path;
 
         //for read and write at storage_Path
         Folder folder;
@@ -63,12 +60,18 @@ namespace Project_Server
         //For SQL connection _ Path is Server DB Path
         //If you
         SqlConnection sqlConnect = new SqlConnection(@"Data Source = (LocalDB)\MSSQLLocalDB; AttachDbFilename = D:\school\3\Linux\Project\Project_Server\Server_DB.mdf; Integrated Security = True; Connect Timeout = 30");
+        SqlCommand sqlcom = null;
+
         //SQL Line
         string query;
         //Adapter between query and DB
         SqlDataAdapter sqla = null;
         //Make a DataTable Object
         DataTable dt = null;
+        //For save Default Project Path
+        string default_Project_Path = "C:\\Users\\user\\Documents";
+        //For save Max Project number
+        int Max_Pno = 0;
 
         public class CustomException : Exception
         {
@@ -108,6 +111,26 @@ namespace Project_Server
             //port = randNum.Next(7000, 7999);
             port = 7111;
             this.textBox_Port.Text = port.ToString();
+            sqlConnect.Open();
+
+            //select Project_number to have same Pname
+            query = "select MAX(Pno) As maxPno "
+                + "from PROJECT "
+                + "where Pno >= 1";
+
+            textBox_Down_Up_Load_Log.AppendText(query + "\n");
+            //Adapter between query and DB
+            sqla = new SqlDataAdapter(query, sqlConnect);
+            //Make a DataTable Object
+            dt = new DataTable();
+            //find attribute your sql
+            sqla.Fill(dt);
+
+            //if find Pno's Max Value in Project table in database
+            if (dt.Rows.Count >= 1)
+            {
+                Max_Pno = Int32.Parse(dt.Rows[0]["maxPno"].ToString());
+            }
         }
         
         public void receive_Thread()
@@ -125,7 +148,7 @@ namespace Project_Server
                 permission.Demand();
 
                 IPAddress ip = IPAddress.Parse(WanIP.ToString());
-                Client.Blocking = true;
+                //Client.Blocking = true;
                 //서버 첫 구동
                 //클라이언트가 없다면 text 출력
 
@@ -218,20 +241,41 @@ namespace Project_Server
                 }
                 else if (dataType.Equals("File_DownLoad"))
                 {
-                    //Task가 수행하는 함수 수정 해야함
                     Task File_DownLoad_Task = new Task(new Action(Send_Project_file));
                     File_DownLoad_Task.Start();
                     File_DownLoad_Task.Wait();
                     File_DownLoad_Task.Dispose();
                 }
-                else if (dataType.Equals("Client UpLoad"))
+                else if (dataType.Equals("File_UpLoad"))
                 {
-                    //추가구현 클라이언트에서 파일 업로드
-                    //this.receiveMp3FiletoClient();
+                    Task File_UpLoad_Task = new Task(new Action(UpLoad_File_Project));
+                    File_UpLoad_Task.Start();
+                    File_UpLoad_Task.Wait();
+                    File_UpLoad_Task.Dispose();
+                }
+                else if (dataType.Equals("Join_Project"))
+                {
+                    var Approved_Project_Join_Task = Task<string>.Run(() => Approved_Project_Exist("Join"));
+                    Approved_Project_Join_Task.Wait();
+                    Approved_Project_Join_Task.Dispose();
+                }
+                else if (dataType.Equals("Leave_Project"))
+                {
+                    var Approved_Project_Leave_Task = Task<string>.Run(() => Approved_Project_Exist("Leave"));
+                    Approved_Project_Leave_Task.Wait();
+                    Approved_Project_Leave_Task.Dispose();
+                }
+                else if (dataType.Equals("Create_Project"))
+                {
+                    Task Project_Create_Task = new Task(new Action(Project_Create));
+                    Project_Create_Task.Start();
+                    Project_Create_Task.Wait();
+                    Project_Create_Task.Dispose();
                 }
             }
         }
 
+        //For Login
         private void Decision_Approved()
         {
             this.Invoke(new MethodInvoker(delegate ()
@@ -288,7 +332,6 @@ namespace Project_Server
             {
                 //Send Project_Status
                 streamW.WriteLine("Project_Status");
-                streamW.Flush();
                 //Send 5-times
                 //Send Project name
                 streamW.WriteLine(dt.Rows[i]["Pname"].ToString());
@@ -325,7 +368,6 @@ namespace Project_Server
             {
                 //Send Project_Status
                 streamW.WriteLine("File_List");
-                streamW.Flush();
                 //Send 5-times
                 //Send Project name
                 streamW.WriteLine(dt.Rows[i]["Fname"].ToString());
@@ -365,6 +407,7 @@ namespace Project_Server
             reader.Close();
         }
         
+        //--------------Requested DownLoad File to Client--------------//
         private void Send_Project_file()
         {
             this.Invoke(new MethodInvoker(delegate ()
@@ -373,7 +416,7 @@ namespace Project_Server
                 string tempString = streamR.ReadLine();
                 int Project_Number = Convert.ToInt32(tempString);
                 string File_Name = streamR.ReadLine();
-
+                
                 query = "select Ppath "
                     + "from PROJECT "
                     + "where Pno = '" + Project_Number + "'";
@@ -426,16 +469,95 @@ namespace Project_Server
                     reader.Close();
                     textBox_Down_Up_Load_Log.AppendText("Send File : " + requestedFile_Path + "\n");
                 }
-                
             }));
 
         }
 
+        //---------------Requested UpLoad File to Client---------------//
+        private void UpLoad_File_Project()
+        {
+            //추후 추가는 업로드자 게시
+            this.Invoke(new MethodInvoker(delegate ()
+            {
+                //receive data at Client
+                string project_Number = streamR.ReadLine();
+                string user_ID = streamR.ReadLine();
+                string file_Name = streamR.ReadLine();
+                //file_Name_Split_Arr[0] : File Name without extension
+                //file_Name_Split_Arr[1] : File's extension
+                string[] file_Name_Split_Arr = file_Name.Split('.');
+
+                //sql문을 통해 파일 경로를 찾아야함
+                query = "select Ppath "
+                    + "from PROJECT "
+                    + "where Pno = '" + project_Number + "'";
+
+                //Adapter between query and DB
+                sqla = new SqlDataAdapter(query, sqlConnect);
+                //Make a DataTable Object
+                dt = new DataTable();
+                //find attribute your sql
+                sqla.Fill(dt);
+                //save Project Path
+                string storage_Path = dt.Rows[0]["Ppath"].ToString();
+
+                //For create File save to file path
+                string storage_File_Path = storage_Path + "\\" + file_Name;
+                storage_File_Path.Replace("\\", "\\\\");
+                FileStream stream = new FileStream(storage_File_Path, FileMode.Create, FileAccess.Write);
+
+                //파일 크기 수신
+                string tempString = streamR.ReadLine();
+                textBox_Down_Up_Load_Log.AppendText(tempString + "\n");
+                int fileLength = Convert.ToInt32(tempString);
+                int totalLength = 0;
+
+                textBox_Down_Up_Load_Log.AppendText("pno : "+project_Number+"\n");
+                //Pno를 통해 Ppath검색, 파일을 받아 해당 경로에 파일 생성 및 자료 이동
+                textBox_Down_Up_Load_Log.AppendText("success make file fileLength : \n"+ fileLength + "\n");
+
+                //의문점 : 992byte가 소실됩니다. 슈바 어디로 쳐 날라간거니
+                //write File in File_Path
+                BinaryWriter writer = new BinaryWriter(stream);
+                while (totalLength < fileLength)
+                {
+                    int receiveLength = Client.Receive(readBuffer);
+                    writer.Write(readBuffer, 0, receiveLength);
+                    totalLength += receiveLength;
+                }
+                stream.Close();
+                writer.Close();
+                textBox_Down_Up_Load_Log.AppendText("success write file\n");
+
+                //FILE_INFORM 테이블에 해당 파일 정보 업로드
+                //Get FileSize
+                FileInfo fInfo = new FileInfo(storage_File_Path);
+                string file_Size = GetFileSize(fInfo.Length);
+                //Fname, Ftype, Fsize
+                //insert PROJECT_FILE_INFORM table_Fname, Ftype, Fsize
+                query = "insert into PROJECT_FILE_INFORM "
+                    + "values("
+                    + "" + project_Number + ", '"
+                    + file_Name + "', '"
+                    + file_Name_Split_Arr[1] + "', '"
+                    + file_Size + "')";
+
+                sqlcom = new SqlCommand();
+                sqlcom.Connection = sqlConnect;
+                sqlcom.CommandText = query;
+                //execute query
+                sqlcom.ExecuteNonQuery();
+
+                this.Send_Project_Entry(storage_Path);
+            }));
+        }
+
+        //---------------Requested Open Project to Client---------------//
         private void Project_Open()
         {
             this.Invoke(new MethodInvoker(delegate ()
             {
-                //receive query at Client
+                //receive data at Client
                 string Pname = streamR.ReadLine();
                 string Pnumber = streamR.ReadLine();
 
@@ -467,7 +589,63 @@ namespace Project_Server
                 }
             }));
         }
+        
+        //---------------Requested Create Project to Client---------------//
+        private void Project_Create()
+        {
+            this.Invoke(new MethodInvoker(delegate ()
+            {
+                //receive data at Client
+                string Pname = streamR.ReadLine();
+                string Ppath = default_Project_Path + "\\" + Pname;
+                string Pstartdate = streamR.ReadLine();
+                string Penddate = streamR.ReadLine();
+                string User_ID = streamR.ReadLine();
 
+                //Create Directory
+                Ppath.Replace("\\","\\\\");
+                di = new DirectoryInfo(Ppath);
+                di.Create();
+                
+                //increase Max_Pno
+                Max_Pno += 1;
+
+                //insert PROJECT table_Pno, Pname, Ppath, P_sstart_date, P_end_date
+                query = "insert into PROJECT "
+                    + "values("
+                    + "'" + Max_Pno + "', '"
+                    + Pname + "', '"
+                    + Ppath + "', '"
+                    + Pstartdate + "', '"
+                    + Penddate + "')";
+
+                sqlcom = new SqlCommand();
+                sqlcom.Connection = sqlConnect;
+                sqlcom.CommandText = query;
+                //execute query
+                sqlcom.ExecuteNonQuery();
+
+                //insert PART_IN table_add user_id, pnumber
+                query = "insert into PART_IN "
+                    + "values("
+                    + "'" + User_ID + "', '"
+                    + Max_Pno + "')";
+
+                sqlcom = new SqlCommand();
+                sqlcom.Connection = sqlConnect;
+                sqlcom.CommandText = query;
+                //execute query
+                sqlcom.ExecuteNonQuery();
+
+                textBox_Down_Up_Load_Log.AppendText("success add new Project Information\n");
+                //Notice Exist Project Name in database
+                streamW.WriteLine("Exist_Project_To_Join");
+                streamW.Flush();
+                this.FindProjectStatus(User_ID);
+            }));
+        }
+
+        //--------------Requested Open "*.txt" File to Client--------------//
         private void File_Open()
         {
             this.Invoke(new MethodInvoker(delegate ()
@@ -523,13 +701,94 @@ namespace Project_Server
             }));
         }
 
+        //Approved to Join or Leave in Project
+        //flag = Join or Leave
+        private void Approved_Project_Exist(string flag)
+        {
+            this.Invoke(new MethodInvoker(delegate ()
+            {
+                //receive data at Client
+                string Pname = streamR.ReadLine();
+                string User_ID = streamR.ReadLine();
+
+                //select Project_number to have same Pname
+                query = "select Pno "
+                    + "from PROJECT "
+                    + "where Pname ='" + Pname + "'";
+
+                textBox_Down_Up_Load_Log.AppendText(query + "\n");
+                //Adapter between query and DB
+                sqla = new SqlDataAdapter(query, sqlConnect);
+                //Make a DataTable Object
+                dt = new DataTable();
+                //find attribute your sql
+                sqla.Fill(dt);
+
+                //if exist Project_Name add UserID in Project table in database
+                if (dt.Rows.Count >= 1)
+                {
+                    //execute below Code to Join Project
+                    if (flag.Equals("Join"))
+                    {
+                        textBox_Down_Up_Load_Log.AppendText("find success Project_Name for join\n");
+
+                        //alter PART_IN table_add user_id, pnumber
+                        query = "insert into PART_IN "
+                            + "values("
+                            + "'" + User_ID + "', '"
+                            + dt.Rows[0]["Pno"].ToString() + "')";
+                        
+                        sqlcom = new SqlCommand();
+                        sqlcom.Connection = sqlConnect;
+                        sqlcom.CommandText = query;
+                        //execute query
+                        sqlcom.ExecuteNonQuery();
+
+                        textBox_Down_Up_Load_Log.AppendText("success add Project_Name for join\n");
+                        //Notice Exist Project Name in database
+                        streamW.WriteLine("Exist_Project_To_Join");
+                        streamW.Flush();
+                        this.FindProjectStatus(User_ID);
+                    }
+                    //execute below Code to Leave Project
+                    else if (flag.Equals("Leave"))
+                    {
+                        textBox_Down_Up_Load_Log.AppendText("find success Project_Name for Leave\n");
+
+                        //alter PART_IN table_add user_id, pnumber
+                        query = "delete from PART_IN "
+                            + "where Pnumber ='" + dt.Rows[0]["Pno"].ToString()
+                            + "' and ID = '" + User_ID + "'";
+
+                        sqlcom = new SqlCommand();
+                        sqlcom.Connection = sqlConnect;
+                        sqlcom.CommandText = query;
+                        //execute query
+                        sqlcom.ExecuteNonQuery();
+
+                        textBox_Down_Up_Load_Log.AppendText("success add Project_Name for Leave\n");
+                        //Notice Exist Project Name in database
+                        streamW.WriteLine("Exist_Project_To_Leave");
+                        streamW.Flush();
+                        this.FindProjectStatus(User_ID);
+                    }
+                }
+                else
+                {
+                    textBox_Down_Up_Load_Log.AppendText("Not exist Project name for join : " + "\n");
+                    streamW.WriteLine("Not_Exist_Project_To_Join");
+                    streamW.Flush();
+                }
+            }));
+        }
+
         //Set Storage_Path
         private void button_Find_Path_Click(object sender, EventArgs e)
         {
             this.folder_Browser_Dialog.ShowDialog();
             
             //선택한 경로 textBox에 나타냄
-            storage_Path = this.folder_Browser_Dialog.SelectedPath;
+            string storage_Path = this.folder_Browser_Dialog.SelectedPath;
             this.textBox_Storage_Path.Text = storage_Path;
         }
 
@@ -565,6 +824,23 @@ namespace Project_Server
                 label_Server_Status.Text = "Running";
                 this.label_Server_Status.ForeColor = Color.BlueViolet;
             }
+        }
+
+        //For Get File Size Function
+        //출처: http://ndolson.com/1362 [엔돌슨의 IT이야기]
+        private string GetFileSize(double byteCount)
+        {
+            string size = "0 Bytes";
+            if (byteCount >= 1073741824.0)
+                size = String.Format("{0:##.##}", byteCount / 1073741824.0) + " GB";
+            else if (byteCount >= 1048576.0)
+                size = String.Format("{0:##.##}", byteCount / 1048576.0) + " MB";
+            else if (byteCount >= 1024.0)
+                size = String.Format("{0:##.##}", byteCount / 1024.0) + " KB";
+            else if (byteCount > 0 && byteCount < 1024.0)
+                size = byteCount.ToString() + " Bytes";
+
+            return size;
         }
 
         private void Form_Server_FormClosed(object sender, FormClosedEventArgs e)

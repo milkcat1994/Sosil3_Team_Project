@@ -153,7 +153,6 @@
             // 
             this.textBox_Down_Up_Load_Log.Cursor = System.Windows.Forms.Cursors.Default;
             this.textBox_Down_Up_Load_Log.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.textBox_Down_Up_Load_Log.Enabled = false;
             this.textBox_Down_Up_Load_Log.Location = new System.Drawing.Point(0, 15);
             this.textBox_Down_Up_Load_Log.Multiline = true;
             this.textBox_Down_Up_Load_Log.Name = "textBox_Down_Up_Load_Log";

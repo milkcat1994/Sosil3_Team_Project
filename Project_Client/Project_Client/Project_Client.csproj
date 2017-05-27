@@ -46,16 +46,43 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Form1.cs">
+    <Compile Include="Client.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form1.Designer.cs">
-      <DependentUpon>Form1.cs</DependentUpon>
+    <Compile Include="Client.Designer.cs">
+      <DependentUpon>Client.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Create_Project.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Create_Project.Designer.cs">
+      <DependentUpon>Create_Project.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Join_Project.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Join_Project.Designer.cs">
+      <DependentUpon>Join_Project.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Leave_Project.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Leave_Project.Designer.cs">
+      <DependentUpon>Leave_Project.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="Form1.resx">
-      <DependentUpon>Form1.cs</DependentUpon>
+    <EmbeddedResource Include="Client.resx">
+      <DependentUpon>Client.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Create_Project.resx">
+      <DependentUpon>Create_Project.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Join_Project.resx">
+      <DependentUpon>Join_Project.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Leave_Project.resx">
+      <DependentUpon>Leave_Project.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
