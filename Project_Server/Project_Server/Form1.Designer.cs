@@ -40,8 +40,8 @@
             this.textBox_Down_Up_Load_Log = new System.Windows.Forms.TextBox();
             this.label_Server_Status = new System.Windows.Forms.Label();
             this.panel_Connect_Log = new System.Windows.Forms.Panel();
-            this.label_Connection_Log = new System.Windows.Forms.Label();
-            this.textBox_Connect_Log = new System.Windows.Forms.TextBox();
+            this.listView_Client_List = new System.Windows.Forms.ListView();
+            this.label_Client_List = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
             this.textBox_Storage_Path = new System.Windows.Forms.TextBox();
             this.label_Storage_Path = new System.Windows.Forms.Label();
@@ -178,35 +178,32 @@
             // 
             this.panel_Connect_Log.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.panel_Connect_Log.Controls.Add(this.label_Connection_Log);
-            this.panel_Connect_Log.Controls.Add(this.textBox_Connect_Log);
+            this.panel_Connect_Log.Controls.Add(this.listView_Client_List);
+            this.panel_Connect_Log.Controls.Add(this.label_Client_List);
             this.panel_Connect_Log.Location = new System.Drawing.Point(339, 91);
             this.panel_Connect_Log.Name = "panel_Connect_Log";
             this.panel_Connect_Log.Size = new System.Drawing.Size(332, 286);
             this.panel_Connect_Log.TabIndex = 9;
             // 
-            // label_Connection_Log
+            // listView_Client_List
             // 
-            this.label_Connection_Log.AutoSize = true;
-            this.label_Connection_Log.Dock = System.Windows.Forms.DockStyle.Top;
-            this.label_Connection_Log.Font = new System.Drawing.Font("굴림", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.label_Connection_Log.Location = new System.Drawing.Point(0, 0);
-            this.label_Connection_Log.Name = "label_Connection_Log";
-            this.label_Connection_Log.Size = new System.Drawing.Size(108, 12);
-            this.label_Connection_Log.TabIndex = 10;
-            this.label_Connection_Log.Text = "Connection Log";
+            this.listView_Client_List.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.listView_Client_List.Location = new System.Drawing.Point(0, 12);
+            this.listView_Client_List.Name = "listView_Client_List";
+            this.listView_Client_List.Size = new System.Drawing.Size(332, 274);
+            this.listView_Client_List.TabIndex = 11;
+            this.listView_Client_List.UseCompatibleStateImageBehavior = false;
             // 
-            // textBox_Connect_Log
+            // label_Client_List
             // 
-            this.textBox_Connect_Log.Cursor = System.Windows.Forms.Cursors.Default;
-            this.textBox_Connect_Log.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.textBox_Connect_Log.Enabled = false;
-            this.textBox_Connect_Log.Location = new System.Drawing.Point(0, 15);
-            this.textBox_Connect_Log.Multiline = true;
-            this.textBox_Connect_Log.Name = "textBox_Connect_Log";
-            this.textBox_Connect_Log.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBox_Connect_Log.Size = new System.Drawing.Size(332, 271);
-            this.textBox_Connect_Log.TabIndex = 0;
+            this.label_Client_List.AutoSize = true;
+            this.label_Client_List.Dock = System.Windows.Forms.DockStyle.Top;
+            this.label_Client_List.Font = new System.Drawing.Font("굴림", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.label_Client_List.Location = new System.Drawing.Point(0, 0);
+            this.label_Client_List.Name = "label_Client_List";
+            this.label_Client_List.Size = new System.Drawing.Size(72, 12);
+            this.label_Client_List.TabIndex = 10;
+            this.label_Client_List.Text = "Client List";
             // 
             // panel1
             // 
@@ -292,13 +289,13 @@
         private System.Windows.Forms.Label label_Down_UP_Load_Log;
         private System.Windows.Forms.Label label_Server_Status;
         private System.Windows.Forms.Panel panel_Connect_Log;
-        private System.Windows.Forms.TextBox textBox_Connect_Log;
-        private System.Windows.Forms.Label label_Connection_Log;
+        private System.Windows.Forms.Label label_Client_List;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Label label_Storage_Path;
         private System.Windows.Forms.TextBox textBox_Storage_Path;
         private System.Windows.Forms.Button button_Find_Path;
         private System.Windows.Forms.FolderBrowserDialog folder_Browser_Dialog;
+        private System.Windows.Forms.ListView listView_Client_List;
     }
 }
 

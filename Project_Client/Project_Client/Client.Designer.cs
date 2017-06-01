@@ -481,7 +481,7 @@
             // 
             this.panel_File_View.Controls.Add(this.button_Exit);
             this.panel_File_View.Controls.Add(this.textBox_Open_File_txt);
-            this.panel_File_View.Location = new System.Drawing.Point(-300, 12);
+            this.panel_File_View.Location = new System.Drawing.Point(12, 12);
             this.panel_File_View.Name = "panel_File_View";
             this.panel_File_View.Size = new System.Drawing.Size(460, 370);
             this.panel_File_View.TabIndex = 4;

@@ -21,16 +21,19 @@ namespace Project_Server
 {
     public partial class Form_Server : Form
     {
+        int client_count = 0;
         //Client Object and Server IP, Port
-        Socket Client = null;
+        Socket Server = null;
+        List<Socket> Client_List = null;
+        List<Thread> Thread_List = null;
         IPEndPoint point;
         private string WanIP;
         int port;
-
+        const int MAX_CLIENT_COUNT = 5;
         private TcpListener m_Listener = null;
-        private NetworkStream netStream;
-        private StreamReader streamR;
-        private StreamWriter streamW;
+        //private NetworkStream netStream;
+        //private StreamReader streamR;
+        //private StreamWriter streamW;
 
         //Define for using Buffer
         public const int little_buf_size = 1024;
@@ -82,7 +85,11 @@ namespace Project_Server
         public Form_Server()
         {
             InitializeComponent();
+            Client_List = new List<Socket>();
+            Thread_List = new List<Thread>();
+            Server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         }
+        
 
         public string Get_My_IP_Wan()
         {
@@ -100,7 +107,7 @@ namespace Project_Server
             }
             return WanIP;
         }
-
+        
         private void Form_Server_Load(object sender, EventArgs e)
         {
             //get my ip
@@ -133,59 +140,25 @@ namespace Project_Server
             }
         }
         
-        public void receive_Thread()
+        public void receive_Thread(object sender, SocketAsyncEventArgs e)
         {
-            try
-            {// Creates one SocketPermission object for access restrictions
-                SocketPermission permission = new SocketPermission(
-                NetworkAccess.Accept,     // Allowed to accept connections 
-                TransportType.Tcp,        // Defines transport types 
-                "",                       // The IP addresses of local host 
-                SocketPermission.AllPorts // Specifies all ports 
-                );
-               
-                // Ensures the code to have permission to access a Socket
-                permission.Demand();
+            textBox_Down_Up_Load_Log.AppendText("Client Connected!!!!\n");
+            Socket Client = e.AcceptSocket;
+            Client_List.Add(Client);
+            NetworkStream netStream = new NetworkStream(Client);
+            StreamReader streamR = new StreamReader(netStream);
+            StreamWriter streamW = new StreamWriter(netStream);
+            textBox_Down_Up_Load_Log.AppendText("success stream Object\n");
+            
+            //thread List 에 해당 스래드 삽입 이후 실행
+            //param으로써 Client_List의 Client Socket 정보를 넘겨줌
 
-                IPAddress ip = IPAddress.Parse(WanIP.ToString());
-                //Client.Blocking = true;
-                //서버 첫 구동
-                //클라이언트가 없다면 text 출력
-
-                this.Invoke(new MethodInvoker(delegate ()
-                {
-                    if (!this.m_blsClientOn)
-                        this.textBox_Connect_Log.AppendText("Waiting For Client Access...\n");
-                }));
-                //SocketException
-                
-                point = new IPEndPoint(ip, port);
-                Client.Bind(point);
-                //소켓 대기상태
-                Client.Listen(1);
-                Client = Client.Accept();
-                //클라이언트의 접속을 기다려 접속시 Client 소켓 정보 초기화
-            }
-            //Start이후 클라이언트 접속 없이 stop를 하였을 때 발생하는 Exception을 캐치 위함
-            catch (SocketException se)
-            {
-                m_Thread.Abort();
-            }
-
-            //클라이언트 접속시 실행
-            if (Client.Connected)
-            {
-                this.Invoke(new MethodInvoker(delegate ()
-                {
-                    netStream = new NetworkStream(Client);
-                    streamR = new StreamReader(netStream);
-                    streamW = new StreamWriter(netStream);
-
-                    this.m_blsClientOn = true;
-                    this.textBox_Connect_Log.AppendText("Client Access!!!\n");
-                }));
-            }
-
+            client_count += 1;
+            this.m_blsClientOn = true;
+            /////////////////////////////////////
+            Socket _server = (Socket)sender;
+            e.AcceptSocket = null;
+            _server.AcceptAsync(e);
             //Receive Client Request
             while (this.m_blsClientOn)
             {
@@ -194,89 +167,164 @@ namespace Project_Server
                     this.Invoke(new MethodInvoker(delegate ()
                     {
                         this.textBox_Down_Up_Load_Log.AppendText("waiting Client request\n");
-                        //파일의 타입을 맨 처음 전송 받음
-                        dataType = streamR.ReadLine();
-                        this.textBox_Down_Up_Load_Log.AppendText("Server dataType : " + dataType + "\n");
                     }));
+                    //파일의 타입을 맨 처음 전송 받음
+                    if (Client.Available > 0)
+                    {
+                        dataType = streamR.ReadLine();
+                        this.Invoke(new MethodInvoker(delegate ()
+                        {
+                            this.textBox_Down_Up_Load_Log.AppendText("Server dataType : " + dataType + "\n");
+                        }));
+                    }
+                    else
+                        continue;
                 }
                 catch
                 {
-                    this.m_blsClientOn = false;
+                    //this.m_blsClientOn = false;
+                    netStream.Close();
+                    streamR.Close();
+                    streamW.Close();
                     return;
                 }
 
                 //패킷 타입 분석 이후 패킷 종류에 따라 나눠서 사용함.
                 if (dataType.Equals("Login"))
                 {
-                    Task Login_Task = new Task(new Action(Decision_Approved));
-                    Login_Task.Start();
+                    var Login_Task = Task<string>.Run(() => Decision_Approved(streamR, streamW));
                     Login_Task.Wait();
                     Login_Task.Dispose();
                 }
                 else if (dataType.Equals("Project_Open"))
                 {
-                    Task Project_Open_Task = new Task(new Action(Project_Open));
-                    Project_Open_Task.Start();
+                    var Project_Open_Task = Task<string>.Run(() => Project_Open(streamR, streamW));
                     Project_Open_Task.Wait();
                     Project_Open_Task.Dispose();
                 }
                 else if (dataType.Equals("File_Open"))
                 {
                     //Task가 수행하는 함수 수정 해야함
-                    Task File_Open_Task = new Task(new Action(File_Open));
-                    File_Open_Task.Start();
+                    var File_Open_Task = Task<string>.Run(() => File_Open(Client, streamR, streamW));
                     try
                     {
                         File_Open_Task.Wait();
                     }
                     catch (AggregateException ae)
                     {
-                        foreach (var e in ae.InnerExceptions)
+                        foreach (var v in ae.InnerExceptions)
                         {
                             // Handle the custom exception.
-                           Console.WriteLine(e.Message);
+                            Console.WriteLine(v.Message);
                         }
                     }
                     File_Open_Task.Dispose();
                 }
                 else if (dataType.Equals("File_DownLoad"))
                 {
-                    Task File_DownLoad_Task = new Task(new Action(Send_Project_file));
-                    File_DownLoad_Task.Start();
+                    var File_DownLoad_Task = Task<string>.Run(() => Send_Project_file(Client, streamR, streamW));
                     File_DownLoad_Task.Wait();
                     File_DownLoad_Task.Dispose();
                 }
                 else if (dataType.Equals("File_UpLoad"))
                 {
-                    Task File_UpLoad_Task = new Task(new Action(UpLoad_File_Project));
-                    File_UpLoad_Task.Start();
+                    var File_UpLoad_Task = Task<string>.Run(() => UpLoad_File_Project(Client, streamR, streamW));
                     File_UpLoad_Task.Wait();
                     File_UpLoad_Task.Dispose();
                 }
                 else if (dataType.Equals("Join_Project"))
                 {
-                    var Approved_Project_Join_Task = Task<string>.Run(() => Approved_Project_Exist("Join"));
+                    var Approved_Project_Join_Task = Task<string>.Run(() => Approved_Project_Exist("Join", streamR, streamW));
                     Approved_Project_Join_Task.Wait();
                     Approved_Project_Join_Task.Dispose();
                 }
                 else if (dataType.Equals("Leave_Project"))
                 {
-                    var Approved_Project_Leave_Task = Task<string>.Run(() => Approved_Project_Exist("Leave"));
+                    var Approved_Project_Leave_Task = Task<string>.Run(() => Approved_Project_Exist("Leave", streamR, streamW));
                     Approved_Project_Leave_Task.Wait();
                     Approved_Project_Leave_Task.Dispose();
                 }
                 else if (dataType.Equals("Create_Project"))
                 {
-                    Task Project_Create_Task = new Task(new Action(Project_Create));
-                    Project_Create_Task.Start();
+                    var Project_Create_Task = Task<string>.Run(() => Project_Create(streamR, streamW));
                     Project_Create_Task.Wait();
                     Project_Create_Task.Dispose();
                 }
             }
         }
 
+        public void accept_Client()
+        {
+            // Creates one SocketPermission object for access restrictions
+            SocketPermission permission = new SocketPermission(
+            NetworkAccess.Accept,     // Allowed to accept connections 
+            TransportType.Tcp,        // Defines transport types 
+            "",                       // The IP addresses of local host 
+            SocketPermission.AllPorts // Specifies all ports 
+            );
+
+            // Ensures the code to have permission to access a Socket
+            permission.Demand();
+
+
+            IPAddress ip = IPAddress.Parse(WanIP.ToString());
+            //Client.Blocking = true;
+            //서버 첫 구동
+            //클라이언트가 없다면 text 출력
+
+            this.Invoke(new MethodInvoker(delegate () {}));
+            //SocketException
+
+            point = new IPEndPoint(ip, port);
+            Server.Bind(point);
+
+            //소켓 대기상태_5개 대기가능
+            Server.Listen(MAX_CLIENT_COUNT);
+
+            SocketAsyncEventArgs args = new SocketAsyncEventArgs();
+            args.Completed += new EventHandler<SocketAsyncEventArgs>(receive_Thread);
+
+            Server.AcceptAsync(args);
+            /*
+            while (true)
+            {
+                try
+                {
+                    textBox_Down_Up_Load_Log.AppendText("waiting client accept\n");
+                    //Socket client = Server.Accept();
+                    Client_List.Add(client);
+                    //클라이언트의 접속을 기다려 접속시 Client 소켓 정보 초기화
+                }
+                //Start이후 클라이언트 접속 없이 stop를 하였을 때 발생하는 Exception을 캐치 위함
+                catch (SocketException se)
+                {
+                    //m_Thread.Abort();
+                }
+                
+                //클라이언트 접속시 실행
+                if (Client_List[client_count].Connected)
+                {
+                    textBox_Down_Up_Load_Log.AppendText("Client Connected!!!!\n");
+                    this.Invoke(new MethodInvoker(delegate ()
+                    {
+                        //thread List 에 해당 스래드 삽입 이후 실행
+                        //param으로써 Client_List의 Client Socket 정보를 넘겨줌
+                        Socket client = Client_List[client_count];
+                        Thread_List.Add(new Thread(() => receive_Thread(client)));
+                        
+                        //var receive_Request_Task = Task<string>.Run(() => receive_Thread(Client_List[client_count]));
+                        Thread_List[client_count].Start();
+                        Thread_List[client_count].IsBackground = true;
+                        client_count += 1;
+                        this.m_blsClientOn = true;
+                    }));
+                }
+            }
+            */
+        }
+
         //For Login
-        private void Decision_Approved()
+        private void Decision_Approved(StreamReader streamR, StreamWriter streamW)
         {
             this.Invoke(new MethodInvoker(delegate ()
             {
@@ -301,7 +349,7 @@ namespace Project_Server
                     //find and send ProjectStatus
                     textBox_Down_Up_Load_Log.AppendText("ProjectMenu <- request receive success\n");
 
-                    var Send_Project_Status_Task = Task<string>.Run(() => FindProjectStatus(user_ID));
+                    var Send_Project_Status_Task = Task<string>.Run(() => FindProjectStatus(user_ID, streamW));
                         Send_Project_Status_Task.Wait();
                 }
                 else
@@ -313,7 +361,7 @@ namespace Project_Server
             }));
         }
 
-        private void FindProjectStatus(string user_ID)
+        private void FindProjectStatus(string user_ID, StreamWriter streamW)
         {
             //Find Pname, Pno, Ppath, p_start_date and p_end_date in PROJECT table
             query = "select Pname, Pno, Ppath, p_start_date, p_end_date"
@@ -349,7 +397,7 @@ namespace Project_Server
         }
 
         //Send a File List to Client 
-        private void Send_Project_Entry(string Ppath)
+        private void Send_Project_Entry(string Ppath, StreamWriter streamW)
         {
             //Find File Status in PROJECT
             query = "select Fname, Ftype, Fsize"
@@ -380,7 +428,7 @@ namespace Project_Server
             }
         }
 
-        private void Send_Txt_File(string full_File_Path)
+        private void Send_Txt_File(string full_File_Path, Socket server_Socket, StreamWriter streamW)
         {
             FileStream fileReader = new FileStream(full_File_Path, FileMode.Open, FileAccess.Read);
 
@@ -400,7 +448,7 @@ namespace Project_Server
             {
                 sendBuffer = reader.ReadBytes(little_buf_size);
                 //읽은 길이만큼 클라로 전송
-                Client.Send(sendBuffer);
+                server_Socket.Send(sendBuffer);
             }
 
             fileReader.Close();
@@ -408,7 +456,7 @@ namespace Project_Server
         }
         
         //--------------Requested DownLoad File to Client--------------//
-        private void Send_Project_file()
+        private void Send_Project_file(Socket server_Socket, StreamReader streamR, StreamWriter streamW)
         {
             this.Invoke(new MethodInvoker(delegate ()
             {
@@ -437,44 +485,45 @@ namespace Project_Server
                 
                 foreach (var item in di.GetFiles())
                 {
-                    streamW.WriteLine("Down_Project_File");
-                    streamW.Flush();
-                    //Send FileStatus
-                    streamW.WriteLine(item.Name);
-                    streamW.Flush();
-                    string requestedFile_Path = (storage_Path + "\\" + item.Name);
-                    //여기서 foreach 돌면서 전송을 하여야함.
-                    FileStream fileReader = new FileStream(requestedFile_Path, FileMode.Open, FileAccess.Read);
-                    textBox_Connect_Log.AppendText(requestedFile_Path);
-                    // 패킷 내용을 받는 크기 받는것 추가시키기
-                    int fileLength = (int)fileReader.Length;
-                    //파일 보낼 횟수
-                    int count = fileLength / little_buf_size + 1;
-                    //파일 읽기 위한 BinaryReader 객체 생성
-                    BinaryReader reader = new BinaryReader(fileReader);
-                    //파일 크기 전송 위해 바이트 배열로 전환
-                    buffer = BitConverter.GetBytes(fileLength);
-                    streamW.WriteLine(fileLength);
-                    streamW.Flush();
-
-                    //파일 전송 시작
-                    for (int i = 0; i < count; i++)
+                    if (item.Name.Equals(File_Name))
                     {
-                        sendBuffer = reader.ReadBytes(little_buf_size);
-                        //읽은 길이만큼 클라로 전송
-                        Client.Send(sendBuffer);
-                    }
+                        streamW.WriteLine("Down_Project_File");
+                        //Send FileStatus
+                        streamW.WriteLine(item.Name);
+                        string requestedFile_Path = (storage_Path + "\\" + item.Name);
+                        //여기서 foreach 돌면서 전송을 하여야함.
+                        FileStream fileReader = new FileStream(requestedFile_Path, FileMode.Open, FileAccess.Read);
+                        // 패킷 내용을 받는 크기 받는것 추가시키기
+                        int fileLength = (int)fileReader.Length;
+                        //파일 보낼 횟수
+                        int count = fileLength / little_buf_size + 1;
+                        //파일 읽기 위한 BinaryReader 객체 생성
+                        BinaryReader reader = new BinaryReader(fileReader);
+                        //파일 크기 전송 위해 바이트 배열로 전환
+                        buffer = BitConverter.GetBytes(fileLength);
+                        streamW.WriteLine(fileLength);
+                        streamW.Flush();
 
-                    fileReader.Close();
-                    reader.Close();
-                    textBox_Down_Up_Load_Log.AppendText("Send File : " + requestedFile_Path + "\n");
+                        textBox_Down_Up_Load_Log.AppendText("send count : " + count);
+                        //파일 전송 시작
+                        for (int i = 0; i < count; i++)
+                        {
+                            sendBuffer = reader.ReadBytes(little_buf_size);
+                            //읽은 길이만큼 클라로 전송
+                            server_Socket.Send(sendBuffer);
+                        }
+
+
+                        fileReader.Close();
+                        reader.Close();
+                        textBox_Down_Up_Load_Log.AppendText("\nSend File : " + requestedFile_Path + "\n");
+                    }
                 }
             }));
-
         }
 
         //---------------Requested UpLoad File to Client---------------//
-        private void UpLoad_File_Project()
+        private void UpLoad_File_Project(Socket server_Socket, StreamReader streamR, StreamWriter streamW)
         {
             //추후 추가는 업로드자 게시
             this.Invoke(new MethodInvoker(delegate ()
@@ -521,7 +570,7 @@ namespace Project_Server
                 BinaryWriter writer = new BinaryWriter(stream);
                 while (totalLength < fileLength)
                 {
-                    int receiveLength = Client.Receive(readBuffer);
+                    int receiveLength = server_Socket.Receive(readBuffer);
                     writer.Write(readBuffer, 0, receiveLength);
                     totalLength += receiveLength;
                 }
@@ -548,12 +597,12 @@ namespace Project_Server
                 //execute query
                 sqlcom.ExecuteNonQuery();
 
-                this.Send_Project_Entry(storage_Path);
+                this.Send_Project_Entry(storage_Path, streamW);
             }));
         }
 
         //---------------Requested Open Project to Client---------------//
-        private void Project_Open()
+        private void Project_Open(StreamReader streamR, StreamWriter streamW)
         {
             this.Invoke(new MethodInvoker(delegate ()
             {
@@ -578,7 +627,7 @@ namespace Project_Server
                 {
                     //Send Project Status to Client
                     textBox_Down_Up_Load_Log.AppendText("find success Project_File_Status\n");
-                    var Send_Project_Folder_Entry = Task<string>.Run(() => Send_Project_Entry(dt.Rows[0]["Ppath"].ToString()));
+                    var Send_Project_Folder_Entry = Task<string>.Run(() => Send_Project_Entry(dt.Rows[0]["Ppath"].ToString(), streamW));
                     Send_Project_Folder_Entry.Wait();
                 }
                 else
@@ -591,7 +640,7 @@ namespace Project_Server
         }
         
         //---------------Requested Create Project to Client---------------//
-        private void Project_Create()
+        private void Project_Create(StreamReader streamR, StreamWriter streamW)
         {
             this.Invoke(new MethodInvoker(delegate ()
             {
@@ -641,12 +690,12 @@ namespace Project_Server
                 //Notice Exist Project Name in database
                 streamW.WriteLine("Exist_Project_To_Join");
                 streamW.Flush();
-                this.FindProjectStatus(User_ID);
+                this.FindProjectStatus(User_ID, streamW);
             }));
         }
 
         //--------------Requested Open "*.txt" File to Client--------------//
-        private void File_Open()
+        private void File_Open(Socket server_Socket, StreamReader streamR, StreamWriter streamW)
         {
             this.Invoke(new MethodInvoker(delegate ()
             {
@@ -687,10 +736,10 @@ namespace Project_Server
                     textBox_Down_Up_Load_Log.AppendText(fileLength.ToString()+"\n");
                     streamW.Flush();
 
-                    for (int i =0;i<count; i++)
+                    for (int i = 0; i < count; i++)
                     {
-                        sendBuffer = Encoding.UTF8.GetBytes(Alltext);
-                        Client.Send(sendBuffer);
+                        sendBuffer = Encoding.Default.GetBytes(Alltext);
+                        server_Socket.Send(sendBuffer);
                         textBox_Down_Up_Load_Log.AppendText(Encoding.Default.GetString(sendBuffer));
                     }
                 }
@@ -703,7 +752,7 @@ namespace Project_Server
 
         //Approved to Join or Leave in Project
         //flag = Join or Leave
-        private void Approved_Project_Exist(string flag)
+        private void Approved_Project_Exist(string flag, StreamReader streamR, StreamWriter streamW)
         {
             this.Invoke(new MethodInvoker(delegate ()
             {
@@ -748,7 +797,7 @@ namespace Project_Server
                         //Notice Exist Project Name in database
                         streamW.WriteLine("Exist_Project_To_Join");
                         streamW.Flush();
-                        this.FindProjectStatus(User_ID);
+                        this.FindProjectStatus(User_ID, streamW);
                     }
                     //execute below Code to Leave Project
                     else if (flag.Equals("Leave"))
@@ -770,7 +819,7 @@ namespace Project_Server
                         //Notice Exist Project Name in database
                         streamW.WriteLine("Exist_Project_To_Leave");
                         streamW.Flush();
-                        this.FindProjectStatus(User_ID);
+                        this.FindProjectStatus(User_ID, streamW);
                     }
                 }
                 else
@@ -796,12 +845,11 @@ namespace Project_Server
         {
             if (button_Server_Start.Text.Equals("Stop"))
             {
-                Client.Close();
+                Server.Close();
                 m_blsClientOn = false;
                 button_Server_Start.Text = "Start";
                 label_Server_Status.Text = "Not Running";
                 this.label_Server_Status.ForeColor = Color.Red;
-                textBox_Connect_Log.AppendText("Server Stopped\n");
             }
             /*
             else if (textBox_Storage_Path.Text == "")
@@ -813,13 +861,13 @@ namespace Project_Server
             else if (button_Server_Start.Text.Equals("Start"))
             {
                 //Socket 변수 초기화
-                Client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                Server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 //스래드로 RUN함수 실행
-                this.m_Thread = new Thread(new ThreadStart(receive_Thread));
+                this.m_Thread = new Thread(new ThreadStart(accept_Client));
                 this.m_Thread.Start();
 
+                
                 //Log 추가 및 button의 text 수정
-                textBox_Connect_Log.AppendText("Server - Start\n");
                 button_Server_Start.Text = "Stop";
                 label_Server_Status.Text = "Running";
                 this.label_Server_Status.ForeColor = Color.BlueViolet;
@@ -852,14 +900,14 @@ namespace Project_Server
                 this.m_Thread.Abort();
             if (this.fileReader != null)
                 this.fileReader.Close();
-            if (this.Client != null)
-                this.Client.Close();
-            if (this.netStream != null)
-                this.netStream.Close();
-            if (this.streamR != null)
-                this.streamR.Close();
-            if (this.streamW != null)
-                this.streamW.Close();
+            if (this.Server != null)
+                this.Server.Close();
+            //if (this.netStream != null)
+            //    this.netStream.Close();
+            //if (this.streamR != null)
+            //    this.streamR.Close();
+            //if (this.streamW != null)
+            //    this.streamW.Close();
         }
     }
 }

@@ -197,8 +197,8 @@ namespace Project_Client
                 //receive query at Client
                 //파일 크기 수신
                 string fileName = streamR.ReadLine();
-                string tempString = streamR.ReadLine();
-                int fileLength = Convert.ToInt32(tempString);
+                string sizeString = streamR.ReadLine();
+                int fileLength = Convert.ToInt32(sizeString);
                 int totalLength = 0;
 
                 //open and create storage Path
@@ -215,6 +215,7 @@ namespace Project_Client
                     totalLength += receiveLength;
                     label1.Text = totalLength.ToString();
                 }
+                label2.Text = sizeString;
                 stream.Close();
                 writer.Close();
             }));
@@ -378,7 +379,6 @@ namespace Project_Client
                     totalLength += receiveLength;
                     label1.Text = totalLength.ToString();
                 }
-
                 panel_Project_File_View.Hide();
                 panel_File_View.Show();
                 panel_File_View.Update();

@@ -5,13 +5,20 @@ using System.Text;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
-namespace ClassLibrary1
+namespace PacketLibrary
 {
     public enum PacketType
     {
-        초기화 = 0,
-        로그인,
-        파일다운로드
+        Connect = 0,
+        Login,
+        DownLoad_File,
+        UpLoad_File,
+        Open_Project,
+        Open_File,
+        Create_Project,
+        Refresh,
+        Join_Project,
+        Leave_Project,
     }
     public enum PacketSendERROR
     {
@@ -61,9 +68,13 @@ namespace ClassLibrary1
     }
 
     [Serializable]
-    public class Initialize : Packet
+    public class Connection : Packet
     {
-        public int Data = 0;
+        public string ip;
+        public Connection()
+        {
+            ip = null;
+        }
     }
 
     [Serializable]
@@ -72,15 +83,62 @@ namespace ClassLibrary1
         public string m_strID;
         public Login()
         {
-            this.m_strID = null;
+            m_strID = null;
+        }
+    }
+    
+    public class DownLoadFile : Packet
+    {
+        public int indexnum;
+        public DownLoadFile()
+        {
+            indexnum = 0;
         }
     }
 
     [Serializable]
-    public class FileDown : Packet
+    public class UpLoadFile : Packet
     {
         public int indexnum;
-        public FileDown()
+        public UpLoadFile()
+        {
+            indexnum = 0;
+        }
+    }
+
+    [Serializable]
+    public class OpenProject : Packet
+    {
+        public int indexnum;
+        public OpenProject()
+        {
+            indexnum = 0;
+        }
+    }
+    [Serializable]
+    public class OpenFile : Packet
+    {
+        public int indexnum;
+        public OpenFile()
+        {
+            indexnum = 0;
+        }
+    }
+
+    [Serializable]
+    public class CreateProject : Packet
+    {
+        public int indexnum;
+        public CreateProject()
+        {
+            indexnum = 0;
+        }
+    }
+    [Serializable]
+    public class Refresh : Packet
+    { 
+        public int indexnum;
+        public Refresh()
         {
             indexnum = 0;
         }
