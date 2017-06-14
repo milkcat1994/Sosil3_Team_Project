@@ -32,3 +32,12 @@
 -Project Create, Join, Leave 기능 구현
 -Client에서 원하는 Project에 파일 업로드 기능 구현
 *Project에 파일 추가시 게시자 정보 DataBase에 추가
+
+##17-06-01
+-Multi_Client 구현 완료
+
+##17-06-14
+-달력확인 기능 추가
+-소켓간 연결 중지 구현 완료
+-달력 수정
+-잡다 오류 수정

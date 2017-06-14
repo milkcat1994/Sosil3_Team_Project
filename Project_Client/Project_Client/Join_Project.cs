@@ -12,7 +12,7 @@ namespace Project_Client
 {
     public partial class Join_Project : Form
     {
-        public delegate void FormSendDataHandler(string obj, string flag);
+        public delegate void FormSendDataHandler(string project_name, string flag);
         public event FormSendDataHandler FormSendEvent;
 
         //First Form Load Function

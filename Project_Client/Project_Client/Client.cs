@@ -1,27 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-using System.Data.SqlClient;
 using System.IO;            //for using StreamReader/Writer_Class
 using System.Net;           //for using IPEndPoint_Class
 using System.Net.Sockets;   //for using Socket_Class
 using System.Threading;     //for using Thread_Class
-using Shell32;              //ShellClass()사용 shell controls 참조 추가
-using System.Collections;
-using NetFwTypeLib;     //Firewall
 
 namespace Project_Client
 {
     public partial class Form_Client : Form
     {
-        private Socket Client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        public delegate void FormSendDataHandler(string[] start_Date, string[] end_Date);
+        public event FormSendDataHandler ParentFormSendEvent;
+
+        private Socket Client;
         private IPEndPoint point;
 
         private NetworkStream netStream;
@@ -33,6 +28,13 @@ namespace Project_Client
         Join_Project jp;
         Leave_Project lp;
 
+        //warning System come deadLine Project
+        Warning_DeadLine wd;
+
+        //For Make Calender View
+        Calender calender;
+        public string[] start_Date, end_Date;
+
         //Define for using Buffer
         public const int little_buf_size = 1024;
         private byte[] sendBuffer = new byte[little_buf_size * 1];
@@ -42,14 +44,10 @@ namespace Project_Client
         
         //server와의 연결이 되었는지 확인
         private bool m_blsConnect = false;
-
+        private string WanIP;
         //Define Thread Object
         private Thread m_Thread = null;
-
-        //For SQL connection _ Path is Server DB Path
-        SqlConnection sqlConnect = new SqlConnection(@"Data Source = (LocalDB)\MSSQLLocalDB; AttachDbFilename=D:\school\3\Linux\Project\Project_Server\Server_DB.mdf;Integrated Security = True; Connect Timeout = 30");
         
-
         public struct ProjectStatus
         {
             public string name;
@@ -67,12 +65,35 @@ namespace Project_Client
                 this.start_date = start_date;
             }
         }
-        private int Current_Project_Number;
-        private string Current_Project_Name;
-        private string Current_User_ID;
+
+        private int current_Project_Number;
+        private string current_Project_Name;
+        private string current_User_ID;
+        private string current_User_IP;
+        private string current_DeadLine_Project;
+        private string current_DeadLine_Alert_Str;
+        //가장 가까운 날짜
+        private DateTime close_Date;
+        //현재 날짜
+        private DateTime current_Date;
+        private DateTime max_Date;
 
         public List<ProjectStatus> projectList = new List<ProjectStatus>();
 
+
+        public void Get_My_IP_Wan()
+        {
+            //아이피 주소 획득
+            IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
+
+            foreach (IPAddress ip in host.AddressList)
+            {
+                if (ip.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    WanIP = ip.ToString();
+                }
+            }
+        }
 
         //receive Server Request
         public void receive_Thread()
@@ -83,7 +104,6 @@ namespace Project_Client
                 {
                     //read Server Request Type
                     dataType = streamR.ReadLine();
-                    textBox1.AppendText("dataType ; "+dataType+"\n");
                 }
                 catch
                 {
@@ -125,6 +145,12 @@ namespace Project_Client
                     Down_Project_Task.Start();
                     Down_Project_Task.Wait();
                 }
+                else if (dataType.Equals("Project_Date_Data"))
+                {
+                    Task Project_Date_Data_Task = new Task(new Action(send_Project_Date));
+                    Project_Date_Data_Task.Start();
+                    Project_Date_Data_Task.Wait();
+                }
                 //If it not find ID, PW in table -> Show a Message Box _ Error Message
                 else if (dataType.Equals("NotApproved"))
                 {
@@ -135,15 +161,15 @@ namespace Project_Client
                 {
                     this.Invoke(new MethodInvoker(delegate ()
                     {
-                        listView_ProjectList.Clear();
+                        listView_ProjectList.Items.Clear();
                     }));
                     jp.Close();
                 }
-                else if  (dataType.Equals("Exist_Project_To_Leave"))
+                else if (dataType.Equals("Exist_Project_To_Leave"))
                 {
                     this.Invoke(new MethodInvoker(delegate ()
                     {
-                        listView_ProjectList.Clear();
+                        listView_ProjectList.Items.Clear();
                     }));
                     lp.Close();
                 }
@@ -174,11 +200,23 @@ namespace Project_Client
                 //File type
                 string File_type = streamR.ReadLine();
                 lvi.SubItems.Add(File_type);
+
                 //File size
                 string File_size = streamR.ReadLine();
                 lvi.SubItems.Add(File_size);
-                lvi.ImageIndex = 0;
-                
+                if (File_type.Trim().Equals("hwp"))
+                {
+                    lvi.ImageIndex = 0;
+                }
+                else if (File_type.Trim().Equals("mp3"))
+                {
+                    lvi.ImageIndex = 1;
+                }
+                else if (File_type.Trim().Equals("txt"))
+                {
+                    lvi.ImageIndex = 2;
+                }
+
                 listView_File_List.Items.Add(lvi);
                 listView_File_List.Update();
                 panel_Project_File_View.Update();
@@ -190,7 +228,12 @@ namespace Project_Client
         {
             //도식이후 파일 타입 : txt, jpeg, zip, 등등을 파악하여 imageList다르게 설정,
             //이미지도 Double Click의 경우 다르게 해보던지요..
-            
+
+            if (textBox_File_Down_Path.Text.ToString().Equals(""))
+            {
+                MessageBox.Show("다운로드 경로를 선택하세요");
+                return;
+            }
             //Find Pno, and Pname, p_start_date, p_end_date, Ppath and send to Client at Server
             this.Invoke(new MethodInvoker(delegate ()
             {
@@ -203,7 +246,6 @@ namespace Project_Client
 
                 //open and create storage Path
                 string storage_File = textBox_File_Down_Path.Text.ToString() + "\\" + fileName;
-                label2.Text = storage_File;
                 storage_File.Replace("\\", "\\\\");
                 FileStream stream = new FileStream(storage_File, FileMode.Create, FileAccess.Write);
 
@@ -213,9 +255,7 @@ namespace Project_Client
                     int receiveLength = Client.Receive(readBuffer);
                     writer.Write(readBuffer, 0, receiveLength);
                     totalLength += receiveLength;
-                    label1.Text = totalLength.ToString();
                 }
-                label2.Text = sizeString;
                 stream.Close();
                 writer.Close();
             }));
@@ -231,14 +271,37 @@ namespace Project_Client
                 //Project name
                 string Project_name = streamR.ReadLine();
                 ListViewItem lvi = new ListViewItem(Project_name);
+
                 //Project number
                 string Project_number = streamR.ReadLine();
                 lvi.SubItems.Add(Project_number);
                 //Project end_date
                 string Project_end_date = streamR.ReadLine();
                 lvi.SubItems.Add(Project_end_date);
-                lvi.ImageIndex = 0;
+                lvi.ImageIndex = 3;
 
+                close_Date = DateTime.Parse(Project_end_date);
+                //음수 : t1<t2    0 : t1==t2  양수 : t1>t2
+                //두 날짜 중 더 큰것이 close_Date가 되어 가장 임박한 날짜가 되게된다.
+                //current_Date < close_Date < max_Date
+                if ((DateTime.Compare(current_Date, close_Date) <= 0) && (DateTime.Compare(close_Date, max_Date)) <= 0)
+                {
+                    max_Date = close_Date;
+                    current_DeadLine_Project = Project_name;
+                    current_DeadLine_Alert_Str = current_DeadLine_Project + "가 " + max_Date.ToString("yyyy/MM/dd") + "까지입니다.";
+                    wd.label_Warning_Text.Text = current_DeadLine_Alert_Str;
+                }
+                else if(DateTime.Compare(current_Date, max_Date) == 0)
+                {
+                    max_Date = close_Date;
+                    current_DeadLine_Project = Project_name;
+                    current_DeadLine_Alert_Str = current_DeadLine_Project + "가 " + max_Date.ToString("yyyy/MM/dd") + "까지입니다.";
+                    wd.label_Warning_Text.Text = current_DeadLine_Alert_Str;
+                }
+                //close_Date > current_Date
+                //do not anything
+
+                
                 string Project_path = streamR.ReadLine();
                 string Project_start_date = streamR.ReadLine();
 
@@ -251,21 +314,27 @@ namespace Project_Client
                 panel_Project_View.Update();
             }));
         }
-
+        
         //------------------Approved Login------------------//
         private void Approved()
         {
             //setting TextBox_ID, PW to empty, hide and show to panel
             this.Invoke(new MethodInvoker(delegate ()
             {
-                this.ClientSize = new System.Drawing.Size(530, 600);
                 //save current user id
-                Current_User_ID = textBox_ID.Text;
+                current_User_ID = textBox_ID.Text;
+                
                 textBox_ID.Text = "";
                 textBox_PW.Text = "";
                 panel_Login.Hide();
                 panel_Project_View.Show();
                 panel_Project_View.Update();
+
+                //default Setting date value
+                current_Date = DateTime.Now;
+                max_Date = new DateTime(9000, 12, 31);
+                Show_DeadLine_Warning();
+                this.ClientSize = new System.Drawing.Size(500, 400);
             }));
         }
 
@@ -274,7 +343,7 @@ namespace Project_Client
         private void Send_Project_Name_Number(string flag)
         {
             //Clear ex_List Information
-            listView_File_List.Clear();
+            listView_File_List.Items.Clear();
 
             streamW.WriteLine("Project_Open");
             streamW.Flush();
@@ -287,23 +356,45 @@ namespace Project_Client
                 string Project_Name = listView_ProjectList.Items[index].SubItems[0].Text;
                 string Project_Number = listView_ProjectList.Items[index].SubItems[1].Text;
                 //Save Current Project Name, Number
-                Current_Project_Name = Project_Name.Trim();
-                Current_Project_Number = Convert.ToInt32(Project_Number.Trim());
+                current_Project_Name = Project_Name.Trim();
+                current_Project_Number = Convert.ToInt32(Project_Number.Trim());
             }
 
             //Execute below Code at flag -> Refresh, Open
             //send item for update List_View to Server
-            streamW.WriteLine(Current_Project_Name);
+            streamW.WriteLine(current_Project_Name);
             streamW.Flush();
-            streamW.WriteLine(Current_Project_Number);
+            streamW.WriteLine(current_Project_Number);
             streamW.Flush();
             listView_File_List.Update();
             panel_Project_View.Update();
         }
-        
-        private void timer1_Tick(object sender, EventArgs e)
+
+        //For Make Calender View//
+        private void send_Project_Date()
         {
-            //textBox1.Text = (testnubmer++).ToString();
+            //count project for view Calender
+            int project_Count = Int32.Parse(streamR.ReadLine());
+            start_Date = new string[project_Count];
+            end_Date = new string[project_Count];
+
+            for(int i = 0; i< project_Count; i++)
+            {
+                start_Date[i] = streamR.ReadLine();
+                end_Date[i] = streamR.ReadLine();
+            }
+            //calender.start_Date = start_Date;
+            //calender.end_Date = end_Date;
+            calender.start_Date = new string[project_Count];
+            calender.end_Date = new string[project_Count];
+            Array.Copy(start_Date, calender.start_Date, start_Date.Length);
+            Array.Copy(end_Date, calender.end_Date, end_Date.Length);
+//            calender.start_Date.CopyTo(start_Date,0);
+//            calender.end_Date.CopyTo(end_Date, 0);
+            calender.flag = true;
+            //MessageBox.Show("change success : " + project_Count.ToString());
+            //calender.receive_Date_Data(start_Date, end_Date);
+            //ParentFormSendEvent(start_Date, end_Date);
         }
 
         //------------------Project Open View------------------//
@@ -348,7 +439,7 @@ namespace Project_Client
                     streamW.WriteLine("File_Open");
                     streamW.Flush();
                     //Send current Project Number
-                    streamW.WriteLine(Current_Project_Number.ToString());
+                    streamW.WriteLine(current_Project_Number.ToString());
                     //Send File Name
                     streamW.WriteLine(File_Name);
                     streamW.Flush();
@@ -356,7 +447,7 @@ namespace Project_Client
             }
             else
             {
-                MessageBox.Show("파일이 txt파일이 아닙니다." + File_Name + "\n" + File_Type);
+                MessageBox.Show("파일이 txt파일이 아닙니다.\n");
             }
         }
         
@@ -377,7 +468,6 @@ namespace Project_Client
                     int receiveLength = Client.Receive(readBuffer);
                     textBox_Open_File_txt.AppendText(Encoding.Default.GetString(readBuffer));
                     totalLength += receiveLength;
-                    label1.Text = totalLength.ToString();
                 }
                 panel_Project_File_View.Hide();
                 panel_File_View.Show();
@@ -407,7 +497,7 @@ namespace Project_Client
                 streamW.WriteLine("File_DownLoad");
                 streamW.Flush();
                 //Send current Project Number
-                streamW.WriteLine(Current_Project_Number.ToString());
+                streamW.WriteLine(current_Project_Number.ToString());
                 //Send File Name
                 streamW.WriteLine(File_Name);
                 streamW.Flush();
@@ -433,9 +523,9 @@ namespace Project_Client
                 streamW.WriteLine("File_UpLoad");
                 
                 //Send current Project Number
-                streamW.WriteLine(Current_Project_Number.ToString());
+                streamW.WriteLine(current_Project_Number.ToString());
                 //Send user_ID
-                streamW.WriteLine(Current_User_ID);
+                streamW.WriteLine(current_User_ID);
                 //Send pure File Name
                 streamW.WriteLine(file_Name);
                 
@@ -450,8 +540,7 @@ namespace Project_Client
                 buffer = BitConverter.GetBytes(fileLength);
                 streamW.WriteLine(fileLength);
                 streamW.Flush();
-
-                label1.Text = fileLength.ToString();
+                
                 //File transfer Start
                 for (int i = 0; i < count; i++)
                 {
@@ -463,7 +552,7 @@ namespace Project_Client
                 fileReader.Close();
                 reader.Close();
                 //Clear File_ListView for receive new File_List in Project
-                listView_File_List.Clear();
+                listView_File_List.Items.Clear();
             }));
         }
 
@@ -500,15 +589,34 @@ namespace Project_Client
         //------------------LogIn, LogOut Function------------------//
         private void button_Login_Click(object sender, EventArgs e)
         {
+            if(textBox_ID.Text.Equals("") || textBox_PW.Text.Equals(""))
+            {
+                MessageBox.Show("ID 또는 PW를 입력하세요");
+                return;
+            }
             streamW.WriteLine("Login");
             streamW.Flush();
-            //If you want to select attribute in Server DB
             //Send User ID in Project
             streamW.WriteLine(textBox_ID.Text.Trim());
             streamW.Flush();
             //Send User PW in Project
             streamW.WriteLine(textBox_PW.Text.Trim());
             streamW.Flush();
+
+            try
+            {
+                //user ID 전송
+                current_User_ID = textBox_ID.Text.Trim();
+                streamW.WriteLine(current_User_ID);
+                //user IP 전송
+                streamW.WriteLine(current_User_IP);
+                streamW.Flush();
+            }
+            catch
+            {
+                return;
+            }
+
         }
 
         private void button_Logout_Click(object sender, EventArgs e)
@@ -522,6 +630,7 @@ namespace Project_Client
                     listView_ProjectList.Items.Remove(item);
                 }
                 projectList.Clear();
+                this.ClientSize = new System.Drawing.Size(280, 170);
             }));
         }
 
@@ -530,11 +639,15 @@ namespace Project_Client
         {
             try
             {
+                Client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 //IP, Port입력에 따른 예외처리
                 //Client.Connect(point)의 실패에 따른 예외처리 구간
                 if (textBox_IP.Text == "" || textBox_Port.Text == "")
                     throw new ObjectDisposedException("null");
                 IPAddress ip = IPAddress.Parse(this.textBox_IP.Text);
+                //save User's IP
+                current_User_IP = WanIP;
+
                 //연결지점 설정
                 point = new IPEndPoint(ip, Convert.ToInt32(this.textBox_Port.Text));
                 //해당 IP, Port와의 연결 시도
@@ -572,6 +685,8 @@ namespace Project_Client
             //Clear IP, Port TextBox
             textBox_IP.Clear();
             textBox_Port.Clear();
+
+
             //received Server Request using while()
             //스래드로 RUN함수 실행
             this.m_Thread = new Thread(new ThreadStart(receive_Thread));
@@ -587,10 +702,16 @@ namespace Project_Client
                 //Clear IP, Port TextBox
                 textBox_ID.Clear();
                 textBox_PW.Clear();
-                //추가적으로 소켓연결 끊는것 생성 해둘것,
-                //서버에서 무한으로 클라이언트를 받을 수 있도록 코드를 바꾸어야함
-                //아직 미구현 코드로 작성
-                //추후 구현 예정
+
+                //Socket Disconnect 구현
+                streamW.WriteLine("Client_Disconnect");
+                streamW.Flush();
+
+                streamR.Close();
+                streamW.Close();
+                netStream.Close();
+                Client.Close();
+                Client = null;
             }));
         }
         
@@ -615,7 +736,7 @@ namespace Project_Client
                 //Send want to join or Leave Project Name
                 streamW.WriteLine(ProjectString.ToString());
                 //Send User ID
-                streamW.WriteLine(Current_User_ID);
+                streamW.WriteLine(current_User_ID);
                 streamW.Flush();
             }
             //Execute below Code when have a flag -> Create
@@ -632,12 +753,12 @@ namespace Project_Client
                     streamW.Flush();
                 }
                 //Send User ID
-                streamW.WriteLine(Current_User_ID);
+                streamW.WriteLine(current_User_ID);
                 streamW.Flush();
                 //Clear ListView ProjectList
                 this.Invoke(new MethodInvoker(delegate ()
                 {
-                    listView_ProjectList.Clear();
+                    listView_ProjectList.Items.Clear();
                 }));
                 cp.Close();
             }
@@ -648,7 +769,6 @@ namespace Project_Client
         private void button_Create_Project_Click(object sender, EventArgs e)
         {
             //Project 이름은 곂치는 것이 없다는 것을 가정으로 할 것.
-
             if (!cp.Created)
             {
                 if (cp.IsDisposed)
@@ -706,6 +826,60 @@ namespace Project_Client
                 lp.Activate();
             }
         }
+        
+        //Click event View Calender Button
+        //show Leave_Project Form and receive Leave_Project_Name
+        private void button_Calender_Click(object sender, EventArgs e)
+        {
+            if (!calender.Created)
+            {
+                if (calender.IsDisposed)
+                {
+                    calender = new Calender();   //make Object
+                }
+                calender.Owner = this;
+                calender.FormSendEvent += new Calender.FormSendDataHandler(approved_Calender_Index);
+                calender.Show();
+            }
+            else
+            {
+                calender.Activate();
+            }
+        }
+
+        //자식폼에게서 year, month입력 받아 서버에게 query 작성을 요구
+        //즉, 서버에게 year, month를 순서대로 전송 해줌
+        private void approved_Calender_Index(int year, int month)
+        {
+            //send flag to Server
+            streamW.WriteLine("Project_Date");
+
+            //Execute below Code
+
+            //Send current selected year
+            streamW.WriteLine(current_User_ID);
+            streamW.WriteLine(year.ToString());
+            //Send month
+            streamW.WriteLine(month.ToString());
+            streamW.Flush();
+        }
+
+
+        private void Show_DeadLine_Warning()
+        {
+            if (!wd.Created)
+            {
+                if (wd.IsDisposed)
+                {
+                    wd = new Warning_DeadLine(current_DeadLine_Alert_Str);   //make Object
+                }
+                wd.Show();
+            }
+            else
+            {
+                wd.Activate();
+            }
+        }
 
         //------------------First Form Function------------------//
         public Form_Client()
@@ -716,6 +890,9 @@ namespace Project_Client
             panel_Project_View.Hide();
             panel_Project_File_View.Hide();
             panel_File_View.Hide();
+
+            //get Client IP
+            Get_My_IP_Wan();
 
             // 뷰모드 지정
             listView_ProjectList.View = View.Tile;
@@ -738,24 +915,38 @@ namespace Project_Client
             cp = new Create_Project();
             jp = new Join_Project();
             lp = new Leave_Project();
+            calender = new Calender();
+
+            //default Setting date value
+            current_Date = DateTime.Now;
+            max_Date = new DateTime(9000, 12, 31);
+            current_DeadLine_Alert_Str = current_DeadLine_Project + "가 " + max_Date.ToString("yyyy/MM/dd") + "까지입니다.";
+            wd = new Warning_DeadLine(current_DeadLine_Alert_Str);
         }
 
         //------------------Form Load Function------------------//
         private void Form_Client_Load(object sender, EventArgs e)
         {
             //textBox_IP.Text = "192.168.43.97";
-            textBox_IP.Text = "192.168.1.105";
+            textBox_IP.Text = "192.168.1.108";
             textBox_Port.Text = "7111";
             textBox_ID.Text = "2013726007";
             textBox_PW.Text = "1234";
-            this.ClientSize = new System.Drawing.Size(500, 460);
+            this.ClientSize = new System.Drawing.Size(280, 170);
             //this.ClientSize = new System.Drawing.Size(300, 230);
         }
 
         //------------------Form_Closed Event Handler------------------//
         private void Form_Client_FormClosed(object sender, FormClosedEventArgs e)
         {
+            if(Client != null)
+            {
+                streamW.WriteLine("Client_Disconnect");
+                streamW.Flush();
+            }
             //해당 값들에 대해 널값이 아닌경우에만 실행하여 exit실행
+            if (this.streamW != null)
+                this.streamW.Close();
             if (this.m_Thread != null)
                 this.m_Thread.Abort();
             if (this.Client != null)
@@ -764,9 +955,8 @@ namespace Project_Client
                 this.netStream.Close();
             if (this.streamR != null)
                 this.streamR.Close();
-            if (this.streamW != null)
-                this.streamW.Close();
             return;
         }
+        
     }
 }

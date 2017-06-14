@@ -25,3 +25,29 @@ D:\school\3\Linux\Project2\Sosil3_Team_Project-master\Sosil3_Team_Project-master
 D:\school\3\Linux\Project2\Sosil3_Team_Project-master\Sosil3_Team_Project-master\Project_Server\Project_Server\obj\Debug\Project_Server.csproj.GenerateResource.Cache
 D:\school\3\Linux\Project2\Sosil3_Team_Project-master\Sosil3_Team_Project-master\Project_Server\Project_Server\obj\Debug\Project_Server.exe
 D:\school\3\Linux\Project2\Sosil3_Team_Project-master\Sosil3_Team_Project-master\Project_Server\Project_Server\obj\Debug\Project_Server.pdb
+C:\Users\KIM YOUNGJUN\Desktop\Sosil3_Team_Project-master\Sosil3_Team_Project-master\Project_Server\Project_Server\bin\Debug\Project_Server.exe.config
+C:\Users\KIM YOUNGJUN\Desktop\Sosil3_Team_Project-master\Sosil3_Team_Project-master\Project_Server\Project_Server\obj\Debug\Interop.NetFwTypeLib.dll
+C:\Users\KIM YOUNGJUN\Desktop\Sosil3_Team_Project-master\Sosil3_Team_Project-master\Project_Server\Project_Server\obj\Debug\Interop.Shell32.dll
+C:\Users\KIM YOUNGJUN\Desktop\Sosil3_Team_Project-master\Sosil3_Team_Project-master\Project_Server\Project_Server\obj\Debug\Project_Server.csproj.ResolveComReference.cache
+C:\Users\KIM YOUNGJUN\Desktop\Sosil3_Team_Project-master\Sosil3_Team_Project-master\Project_Server\Project_Server\bin\Debug\Project_Server.exe
+C:\Users\KIM YOUNGJUN\Desktop\Sosil3_Team_Project-master\Sosil3_Team_Project-master\Project_Server\Project_Server\bin\Debug\Project_Server.pdb
+C:\Users\KIM YOUNGJUN\Desktop\Sosil3_Team_Project-master\Sosil3_Team_Project-master\Project_Server\Project_Server\bin\Debug\Interop.Shell32.dll
+C:\Users\KIM YOUNGJUN\Desktop\Sosil3_Team_Project-master\Sosil3_Team_Project-master\Project_Server\Project_Server\obj\Debug\Project_Server.Form_Server.resources
+C:\Users\KIM YOUNGJUN\Desktop\Sosil3_Team_Project-master\Sosil3_Team_Project-master\Project_Server\Project_Server\obj\Debug\Project_Server.Properties.Resources.resources
+C:\Users\KIM YOUNGJUN\Desktop\Sosil3_Team_Project-master\Sosil3_Team_Project-master\Project_Server\Project_Server\obj\Debug\Project_Server.csproj.GenerateResource.Cache
+C:\Users\KIM YOUNGJUN\Desktop\Sosil3_Team_Project-master\Sosil3_Team_Project-master\Project_Server\Project_Server\obj\Debug\Project_Server.exe
+C:\Users\KIM YOUNGJUN\Desktop\Sosil3_Team_Project-master\Sosil3_Team_Project-master\Project_Server\Project_Server\obj\Debug\Project_Server.pdb
+C:\Users\KIM YOUNGJUN\Desktop\Sosil3_Team_Project-master\Sosil3_Team_Project-master\Project_Server\Project_Server\obj\Debug\Project_Server.csprojResolveAssemblyReference.cache
+C:\Users\user\Desktop\Sosil3_Team_Project-master\Sosil3_Team_Project-master\Project_Server\Project_Server\bin\Debug\Project_Server.exe.config
+C:\Users\user\Desktop\Sosil3_Team_Project-master\Sosil3_Team_Project-master\Project_Server\Project_Server\obj\Debug\Interop.NetFwTypeLib.dll
+C:\Users\user\Desktop\Sosil3_Team_Project-master\Sosil3_Team_Project-master\Project_Server\Project_Server\obj\Debug\Interop.Shell32.dll
+C:\Users\user\Desktop\Sosil3_Team_Project-master\Sosil3_Team_Project-master\Project_Server\Project_Server\obj\Debug\Project_Server.csproj.ResolveComReference.cache
+C:\Users\user\Desktop\Sosil3_Team_Project-master\Sosil3_Team_Project-master\Project_Server\Project_Server\obj\Debug\Project_Server.exe
+C:\Users\user\Desktop\Sosil3_Team_Project-master\Sosil3_Team_Project-master\Project_Server\Project_Server\obj\Debug\Project_Server.pdb
+C:\Users\user\Desktop\Sosil3_Team_Project-master\Sosil3_Team_Project-master\Project_Server\Project_Server\bin\Debug\Project_Server.exe
+C:\Users\user\Desktop\Sosil3_Team_Project-master\Sosil3_Team_Project-master\Project_Server\Project_Server\bin\Debug\Project_Server.pdb
+C:\Users\user\Desktop\Sosil3_Team_Project-master\Sosil3_Team_Project-master\Project_Server\Project_Server\bin\Debug\Interop.Shell32.dll
+C:\Users\user\Desktop\Sosil3_Team_Project-master\Sosil3_Team_Project-master\Project_Server\Project_Server\obj\Debug\Project_Server.csprojResolveAssemblyReference.cache
+C:\Users\user\Desktop\Sosil3_Team_Project-master\Sosil3_Team_Project-master\Project_Server\Project_Server\obj\Debug\Project_Server.Form_Server.resources
+C:\Users\user\Desktop\Sosil3_Team_Project-master\Sosil3_Team_Project-master\Project_Server\Project_Server\obj\Debug\Project_Server.Properties.Resources.resources
+C:\Users\user\Desktop\Sosil3_Team_Project-master\Sosil3_Team_Project-master\Project_Server\Project_Server\obj\Debug\Project_Server.csproj.GenerateResource.Cache
