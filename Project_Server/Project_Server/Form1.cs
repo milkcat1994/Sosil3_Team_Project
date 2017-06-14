@@ -1,13 +1,11 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Drawing;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
 
 using System.IO;            //for using StreamReader/Writer_Class
 using System.Net;           //for using IPEndPoint_Class
@@ -15,16 +13,19 @@ using System.Net.Sockets;   //for using Socket_Class
 using System.Threading;     //for using Thread_Class
 using Shell32;              //ShellClass()사용 shell controls 참조 추가
 using System.Data.SqlClient;
-using NetFwTypeLib;     //Firewall
 
 namespace Project_Server
 {
     public partial class Form_Server : Form
     {
+        SocketAsyncEventArgs socket_Async_Args;
+
         int client_count = 0;
         //Client Object and Server IP, Port
         Socket Server = null;
-        List<Socket> Client_List = null;
+        Hashtable client_Hash_Table;
+        string client_ID;
+        
         List<Thread> Thread_List = null;
         IPEndPoint point;
         private string WanIP;
@@ -85,12 +86,11 @@ namespace Project_Server
         public Form_Server()
         {
             InitializeComponent();
-            Client_List = new List<Socket>();
+            client_Hash_Table = new Hashtable();
             Thread_List = new List<Thread>();
             Server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         }
         
-
         public string Get_My_IP_Wan()
         {
             //아이피 주소 획득
@@ -101,8 +101,6 @@ namespace Project_Server
                 if (ip.AddressFamily == AddressFamily.InterNetwork)
                 {
                     WanIP = ip.ToString();
-                    //this.textBox_Down_Up_Load_Log.AppendText( WanIP + "\n" );
-                    //break;
                 }
             }
             return WanIP;
@@ -124,8 +122,7 @@ namespace Project_Server
             query = "select MAX(Pno) As maxPno "
                 + "from PROJECT "
                 + "where Pno >= 1";
-
-            textBox_Down_Up_Load_Log.AppendText(query + "\n");
+            
             //Adapter between query and DB
             sqla = new SqlDataAdapter(query, sqlConnect);
             //Make a DataTable Object
@@ -142,16 +139,20 @@ namespace Project_Server
         
         public void receive_Thread(object sender, SocketAsyncEventArgs e)
         {
-            textBox_Down_Up_Load_Log.AppendText("Client Connected!!!!\n");
+            this.Invoke(new MethodInvoker(delegate ()
+            {
+                textBox_Down_Up_Load_Log.AppendText("Client Connected!!!!\n");
+            }));
+
             Socket Client = e.AcceptSocket;
-            Client_List.Add(Client);
+
+            client_Hash_Table.Add(Client, Guid.NewGuid().ToString());
             NetworkStream netStream = new NetworkStream(Client);
             StreamReader streamR = new StreamReader(netStream);
             StreamWriter streamW = new StreamWriter(netStream);
-            textBox_Down_Up_Load_Log.AppendText("success stream Object\n");
-            
+
             //thread List 에 해당 스래드 삽입 이후 실행
-            //param으로써 Client_List의 Client Socket 정보를 넘겨줌
+            //param으로써 client_List의 Client Socket 정보를 넘겨줌
 
             client_count += 1;
             this.m_blsClientOn = true;
@@ -164,25 +165,23 @@ namespace Project_Server
             {
                 try
                 {
-                    this.Invoke(new MethodInvoker(delegate ()
-                    {
-                        this.textBox_Down_Up_Load_Log.AppendText("waiting Client request\n");
-                    }));
                     //파일의 타입을 맨 처음 전송 받음
                     if (Client.Available > 0)
                     {
                         dataType = streamR.ReadLine();
-                        this.Invoke(new MethodInvoker(delegate ()
-                        {
-                            this.textBox_Down_Up_Load_Log.AppendText("Server dataType : " + dataType + "\n");
-                        }));
                     }
                     else
                         continue;
                 }
                 catch
                 {
-                    //this.m_blsClientOn = false;
+                    //Found
+                    ListViewItem foundItem =
+                        listView_Client_List.FindItemWithText(client_Hash_Table[Client].ToString(), false, 0, true);
+                    //remove item
+                    listView_Client_List.Items.Remove(foundItem);
+                    client_Hash_Table.Remove(Client);
+
                     netStream.Close();
                     streamR.Close();
                     streamW.Close();
@@ -192,7 +191,7 @@ namespace Project_Server
                 //패킷 타입 분석 이후 패킷 종류에 따라 나눠서 사용함.
                 if (dataType.Equals("Login"))
                 {
-                    var Login_Task = Task<string>.Run(() => Decision_Approved(streamR, streamW));
+                    var Login_Task = Task<string>.Run(() => Decision_Approved(Client ,streamR, streamW));
                     Login_Task.Wait();
                     Login_Task.Dispose();
                 }
@@ -250,6 +249,18 @@ namespace Project_Server
                     Project_Create_Task.Wait();
                     Project_Create_Task.Dispose();
                 }
+                else if (dataType.Equals("Client_Disconnect"))
+                {
+                    var Project_Disconnect_Task = Task<string>.Run(() => disconnect_Client(Client, netStream, streamR, streamW));
+                    Project_Disconnect_Task.Wait();
+                    Project_Disconnect_Task.Dispose();
+                }
+                else if (dataType.Equals("Project_Date"))
+                {
+                    var Parse_Project_Date_Task = Task<string>.Run(() => Parse_Project_Date(streamR, streamW));
+                    Parse_Project_Date_Task.Wait();
+                    Parse_Project_Date_Task.Dispose();
+                }
             }
         }
 
@@ -281,50 +292,83 @@ namespace Project_Server
             //소켓 대기상태_5개 대기가능
             Server.Listen(MAX_CLIENT_COUNT);
 
-            SocketAsyncEventArgs args = new SocketAsyncEventArgs();
-            args.Completed += new EventHandler<SocketAsyncEventArgs>(receive_Thread);
+            socket_Async_Args = new SocketAsyncEventArgs();
+            socket_Async_Args.Completed += new EventHandler<SocketAsyncEventArgs>(receive_Thread);
 
-            Server.AcceptAsync(args);
-            /*
-            while (true)
+            Server.AcceptAsync(socket_Async_Args);
+        }
+
+        //For Parse Project's Date status in database using current year, month
+        public void Parse_Project_Date(StreamReader streamR, StreamWriter streamW)
+        {
+            this.Invoke(new MethodInvoker(delegate ()
             {
-                try
-                {
-                    textBox_Down_Up_Load_Log.AppendText("waiting client accept\n");
-                    //Socket client = Server.Accept();
-                    Client_List.Add(client);
-                    //클라이언트의 접속을 기다려 접속시 Client 소켓 정보 초기화
-                }
-                //Start이후 클라이언트 접속 없이 stop를 하였을 때 발생하는 Exception을 캐치 위함
-                catch (SocketException se)
-                {
-                    //m_Thread.Abort();
-                }
+                //receive user_ID, current year, month at Client
+                string user_ID = streamR.ReadLine();
+                string year = streamR.ReadLine();
+                string month = streamR.ReadLine();
                 
-                //클라이언트 접속시 실행
-                if (Client_List[client_count].Connected)
+                //query _ using startDate
+                query = "select P_start_date, P_end_date from dbo.PROJECT"
+                + " where Pno IN (select Pnumber from dbo.PART_IN where ID = '"
+                + user_ID.Trim() + "')";
+                
+                //Adapter between query and DB
+                sqla = new SqlDataAdapter(query, sqlConnect);
+                //Make a DataTable Object
+                dt = new DataTable();
+                //find attribute your sql
+                sqla.Fill(dt);
+
+                //send all Count Project Status to Client
+                int all_Count = dt.Rows.Count;
+                streamW.WriteLine("Project_Date_Data");
+                streamW.WriteLine(all_Count.ToString());
+                streamW.Flush();
+
+                //if you find Project Status in dataBase
+                if (all_Count >= 1)
                 {
-                    textBox_Down_Up_Load_Log.AppendText("Client Connected!!!!\n");
-                    this.Invoke(new MethodInvoker(delegate ()
+                    for(int i=0; i< all_Count; i++)
                     {
-                        //thread List 에 해당 스래드 삽입 이후 실행
-                        //param으로써 Client_List의 Client Socket 정보를 넘겨줌
-                        Socket client = Client_List[client_count];
-                        Thread_List.Add(new Thread(() => receive_Thread(client)));
-                        
-                        //var receive_Request_Task = Task<string>.Run(() => receive_Thread(Client_List[client_count]));
-                        Thread_List[client_count].Start();
-                        Thread_List[client_count].IsBackground = true;
-                        client_count += 1;
-                        this.m_blsClientOn = true;
-                    }));
+                        //Send 5-times
+                        //Send Project start_date
+                        streamW.WriteLine(dt.Rows[i]["P_start_date"].ToString());
+                        //Send Project end_date
+                        streamW.WriteLine(dt.Rows[i]["P_end_date"].ToString());
+                        streamW.Flush();
+                    }
+                    //find and send ProjectStatus
+                    textBox_Down_Up_Load_Log.AppendText("send success to Client project's date data \n");
                 }
-            }
-            */
+            }));
+        }
+
+        //For managing disconnected Client
+        public void disconnect_Client(Socket Client, NetworkStream netStream, StreamReader streamR, StreamWriter streamW)
+        {
+            this.Invoke(new MethodInvoker(delegate ()
+            {
+                //Check listView items
+                if (listView_Client_List.Items.Count == 0)
+                    return;
+
+                ListViewItem foundItem =
+                    listView_Client_List.FindItemWithText(client_Hash_Table[Client].ToString(), true, 0, false);
+                //remove item
+
+                listView_Client_List.Items.Remove(foundItem);
+                client_Hash_Table.Remove(Client);
+
+                netStream.Close();
+                streamR.Close();
+                streamW.Close();
+            }));
+            return;
         }
 
         //For Login
-        private void Decision_Approved(StreamReader streamR, StreamWriter streamW)
+        private void Decision_Approved(Socket Client, StreamReader streamR, StreamWriter streamW)
         {
             this.Invoke(new MethodInvoker(delegate ()
             {
@@ -343,18 +387,47 @@ namespace Project_Server
 
                 if (dt.Rows.Count == 1)
                 {
+                    //Save Client ID
+                    //클라이언트 접속 시 해당 IP, ID를 받아 리스트에 저장
+                    client_ID = streamR.ReadLine();
+                    string user_IP = streamR.ReadLine();
+                    ListViewItem lvi;
+                    //존재하는 클라이언트인지 확인
+                    if (listView_Client_List.Items.Count != 0)
+                    {
+                        ListViewItem foundItem = listView_Client_List.FindItemWithText(user_IP, true, 0, false);
+
+                        if (foundItem != null)
+                        {
+                            listView_Client_List.Items.Remove(foundItem);
+                            lvi = foundItem;
+                            lvi.SubItems[0].Text = user_ID.ToString();
+                            listView_Client_List.Items.Add(lvi);
+                            listView_Client_List.Items.Remove(foundItem);
+                            listView_Client_List.Update();
+                        }
+                    }
+
+                    //만일 이미 존재하는 클라이언트라면
+                    lvi = new ListViewItem(client_ID);
+                    //File type
+                    lvi.SubItems.Add(user_IP);
+                    //File size
+                    lvi.SubItems.Add(client_Hash_Table[Client].ToString());
+                    lvi.ImageIndex = 0;
+
+                    listView_Client_List.Items.Add(lvi);
+                    listView_Client_List.Update();
+                    
                     streamW.WriteLine("Approved");
                     streamW.Flush();
-                    textBox_Down_Up_Load_Log.AppendText("Approved to Client\n");
                     //find and send ProjectStatus
-                    textBox_Down_Up_Load_Log.AppendText("ProjectMenu <- request receive success\n");
-
+                    
                     var Send_Project_Status_Task = Task<string>.Run(() => FindProjectStatus(user_ID, streamW));
                         Send_Project_Status_Task.Wait();
                 }
                 else
                 {
-                    textBox_Down_Up_Load_Log.AppendText("NotApproved to Client\n");
                     streamW.WriteLine("NotApproved");
                     streamW.Flush();
                 }
@@ -392,7 +465,6 @@ namespace Project_Server
                 //Send Project start_date
                 streamW.WriteLine(dt.Rows[i]["p_start_date"].ToString());
                 streamW.Flush();
-                textBox_Down_Up_Load_Log.AppendText("Pname_" + dt.Rows[i]["Pname"] + "\n");
             }
         }
 
@@ -424,7 +496,6 @@ namespace Project_Server
                 //Send Project number
                 streamW.WriteLine(dt.Rows[i]["Fsize"].ToString());
                 streamW.Flush();
-                textBox_Down_Up_Load_Log.AppendText("Fname_" + dt.Rows[i]["Fname"] + "\n");
             }
         }
 
@@ -503,8 +574,7 @@ namespace Project_Server
                         buffer = BitConverter.GetBytes(fileLength);
                         streamW.WriteLine(fileLength);
                         streamW.Flush();
-
-                        textBox_Down_Up_Load_Log.AppendText("send count : " + count);
+                        
                         //파일 전송 시작
                         for (int i = 0; i < count; i++)
                         {
@@ -557,15 +627,11 @@ namespace Project_Server
 
                 //파일 크기 수신
                 string tempString = streamR.ReadLine();
-                textBox_Down_Up_Load_Log.AppendText(tempString + "\n");
                 int fileLength = Convert.ToInt32(tempString);
                 int totalLength = 0;
-
-                textBox_Down_Up_Load_Log.AppendText("pno : "+project_Number+"\n");
+                
                 //Pno를 통해 Ppath검색, 파일을 받아 해당 경로에 파일 생성 및 자료 이동
-                textBox_Down_Up_Load_Log.AppendText("success make file fileLength : \n"+ fileLength + "\n");
-
-                //의문점 : 992byte가 소실됩니다. 슈바 어디로 쳐 날라간거니
+                
                 //write File in File_Path
                 BinaryWriter writer = new BinaryWriter(stream);
                 while (totalLength < fileLength)
@@ -576,7 +642,7 @@ namespace Project_Server
                 }
                 stream.Close();
                 writer.Close();
-                textBox_Down_Up_Load_Log.AppendText("success write file\n");
+                textBox_Down_Up_Load_Log.AppendText("success UpLoad file : " + file_Name +"\n");
 
                 //FILE_INFORM 테이블에 해당 파일 정보 업로드
                 //Get FileSize
@@ -614,8 +680,7 @@ namespace Project_Server
                     + "from PROJECT "
                     + "where Pname ='" + Pname
                     + "'and Pno = '" + Pnumber + "'";
-
-                textBox_Down_Up_Load_Log.AppendText( query + "\n");
+                
                 //Adapter between query and DB
                 sqla = new SqlDataAdapter(query, sqlConnect);
                 //Make a DataTable Object
@@ -626,13 +691,12 @@ namespace Project_Server
                 if (dt.Rows.Count >= 1)
                 {
                     //Send Project Status to Client
-                    textBox_Down_Up_Load_Log.AppendText("find success Project_File_Status\n");
                     var Send_Project_Folder_Entry = Task<string>.Run(() => Send_Project_Entry(dt.Rows[0]["Ppath"].ToString(), streamW));
                     Send_Project_Folder_Entry.Wait();
                 }
                 else
                 {
-                    textBox_Down_Up_Load_Log.AppendText("Not exist Project name : "+"\n");
+                    textBox_Down_Up_Load_Log.AppendText("Not exist Project name : " + Pname + "\n");
                     streamW.WriteLine("Not_Open_Project");
                     streamW.Flush();
                 }
@@ -686,7 +750,7 @@ namespace Project_Server
                 //execute query
                 sqlcom.ExecuteNonQuery();
 
-                textBox_Down_Up_Load_Log.AppendText("success add new Project Information\n");
+                textBox_Down_Up_Load_Log.AppendText("Success create new Project Information" + Pname + "\n");
                 //Notice Exist Project Name in database
                 streamW.WriteLine("Exist_Project_To_Join");
                 streamW.Flush();
@@ -733,19 +797,17 @@ namespace Project_Server
                     //파일 크기 전송 위해 바이트 배열로 전환
                     //buffer = BitConverter.GetBytes(fileLength);
                     streamW.WriteLine(fileLength.ToString());
-                    textBox_Down_Up_Load_Log.AppendText(fileLength.ToString()+"\n");
                     streamW.Flush();
 
                     for (int i = 0; i < count; i++)
                     {
                         sendBuffer = Encoding.Default.GetBytes(Alltext);
                         server_Socket.Send(sendBuffer);
-                        textBox_Down_Up_Load_Log.AppendText(Encoding.Default.GetString(sendBuffer));
                     }
                 }
                 else
                 {
-                    textBox_Down_Up_Load_Log.AppendText("Not exist File Name  and number : \n");
+                    textBox_Down_Up_Load_Log.AppendText("Not exist File Name : " + File_Name + "\n");
                 }
             }));
         }
@@ -764,8 +826,7 @@ namespace Project_Server
                 query = "select Pno "
                     + "from PROJECT "
                     + "where Pname ='" + Pname + "'";
-
-                textBox_Down_Up_Load_Log.AppendText(query + "\n");
+                
                 //Adapter between query and DB
                 sqla = new SqlDataAdapter(query, sqlConnect);
                 //Make a DataTable Object
@@ -779,7 +840,6 @@ namespace Project_Server
                     //execute below Code to Join Project
                     if (flag.Equals("Join"))
                     {
-                        textBox_Down_Up_Load_Log.AppendText("find success Project_Name for join\n");
 
                         //alter PART_IN table_add user_id, pnumber
                         query = "insert into PART_IN "
@@ -793,7 +853,7 @@ namespace Project_Server
                         //execute query
                         sqlcom.ExecuteNonQuery();
 
-                        textBox_Down_Up_Load_Log.AppendText("success add Project_Name for join\n");
+                        textBox_Down_Up_Load_Log.AppendText("success join Project : " + Pname + "\n");
                         //Notice Exist Project Name in database
                         streamW.WriteLine("Exist_Project_To_Join");
                         streamW.Flush();
@@ -802,7 +862,6 @@ namespace Project_Server
                     //execute below Code to Leave Project
                     else if (flag.Equals("Leave"))
                     {
-                        textBox_Down_Up_Load_Log.AppendText("find success Project_Name for Leave\n");
 
                         //alter PART_IN table_add user_id, pnumber
                         query = "delete from PART_IN "
@@ -815,7 +874,7 @@ namespace Project_Server
                         //execute query
                         sqlcom.ExecuteNonQuery();
 
-                        textBox_Down_Up_Load_Log.AppendText("success add Project_Name for Leave\n");
+                        textBox_Down_Up_Load_Log.AppendText("success leave Project : " + Pname + "\n");
                         //Notice Exist Project Name in database
                         streamW.WriteLine("Exist_Project_To_Leave");
                         streamW.Flush();
@@ -824,7 +883,7 @@ namespace Project_Server
                 }
                 else
                 {
-                    textBox_Down_Up_Load_Log.AppendText("Not exist Project name for join : " + "\n");
+                    textBox_Down_Up_Load_Log.AppendText("Not exist Project name for" + flag + " " + Pname + "\n");
                     streamW.WriteLine("Not_Exist_Project_To_Join");
                     streamW.Flush();
                 }
@@ -843,13 +902,14 @@ namespace Project_Server
 
         private void button_Server_Start_Click(object sender, EventArgs e)
         {
-            if (button_Server_Start.Text.Equals("Stop"))
+            if (button_Server_Start.Text.Equals("Disconnect"))
             {
+                socket_Async_Args.Completed -= (receive_Thread);
                 Server.Close();
                 m_blsClientOn = false;
-                button_Server_Start.Text = "Start";
-                label_Server_Status.Text = "Not Running";
-                this.label_Server_Status.ForeColor = Color.Red;
+                button_Server_Start.Text = "Connect";
+                button_Server_Start.BackColor = Color.DodgerBlue;
+                panel_Sever_Port.BackgroundImage = Properties.Resources.disconpic;
             }
             /*
             else if (textBox_Storage_Path.Text == "")
@@ -858,7 +918,7 @@ namespace Project_Server
                     , MessageBoxIcon.Error);
             }
             */
-            else if (button_Server_Start.Text.Equals("Start"))
+            else if (button_Server_Start.Text.Equals("Connect"))
             {
                 //Socket 변수 초기화
                 Server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -868,9 +928,11 @@ namespace Project_Server
 
                 
                 //Log 추가 및 button의 text 수정
-                button_Server_Start.Text = "Stop";
-                label_Server_Status.Text = "Running";
-                this.label_Server_Status.ForeColor = Color.BlueViolet;
+                button_Server_Start.Text = "Disconnect";
+                button_Server_Start.BackColor = Color.OrangeRed;
+                panel_Sever_Port.BackgroundImage = Properties.Resources.conpic;
+                 //label_Server_Status.Text = "Running";
+                //this.label_Server_Status.ForeColor = Color.BlueViolet;
             }
         }
 
@@ -902,12 +964,9 @@ namespace Project_Server
                 this.fileReader.Close();
             if (this.Server != null)
                 this.Server.Close();
-            //if (this.netStream != null)
-            //    this.netStream.Close();
-            //if (this.streamR != null)
-            //    this.streamR.Close();
-            //if (this.streamW != null)
-            //    this.streamW.Close();
+            socket_Async_Args.Completed -= (receive_Thread);
+            if(this.Server != null)
+                this.Server.Close();
         }
     }
 }
