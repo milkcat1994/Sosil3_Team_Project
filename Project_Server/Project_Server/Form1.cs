@@ -63,7 +63,7 @@ namespace Project_Server
 
         //For SQL connection _ Path is Server DB Path
         //If you
-        SqlConnection sqlConnect = new SqlConnection(@"Data Source = (LocalDB)\MSSQLLocalDB; AttachDbFilename = D:\school\3\Linux\Project\Project_Server\Server_DB.mdf; Integrated Security = True; Connect Timeout = 30");
+        SqlConnection sqlConnect = new SqlConnection(@"Data Source = (LocalDB)\MSSQLLocalDB; AttachDbFilename = C:\Users\KIM YOUNGJUN\Desktop\Project\Project_Server\Server_DB.mdf; Integrated Security = True; Connect Timeout = 30");
         SqlCommand sqlcom = null;
 
         //SQL Line
@@ -112,9 +112,9 @@ namespace Project_Server
             this.textBox_IP.Text = Get_My_IP_Wan().ToString();
             
             //get port
-            //Random randNum = new Random();
-            //port = randNum.Next(7000, 7999);
-            port = 7111;
+            Random randNum = new Random();
+            port = randNum.Next(7000, 7999);
+            //port = 7111;
             this.textBox_Port.Text = port.ToString();
             sqlConnect.Open();
 
@@ -785,9 +785,6 @@ namespace Project_Server
                     //Save File Path
                     string full_File_Path = dt.Rows[0]["Ppath"] + "\\" + File_Name;
                     full_File_Path = full_File_Path.Replace("\\","\\\\");
-                    //var Send_File_Txt = Task<string>.Run(() => Send_Txt_File(full_File_Path));
-                    //Send_File_Txt.Wait();
-                    //FileStream fileReader = new FileStream(full_File_Path, FileMode.Open, FileAccess.Read);
                     string Alltext = File.ReadAllText(full_File_Path);
 
                     //file 내용의 길이 저장
@@ -795,7 +792,6 @@ namespace Project_Server
                     //파일 보낼 횟수
                     int count = fileLength / little_buf_size + 1;
                     //파일 크기 전송 위해 바이트 배열로 전환
-                    //buffer = BitConverter.GetBytes(fileLength);
                     streamW.WriteLine(fileLength.ToString());
                     streamW.Flush();
 
@@ -911,13 +907,6 @@ namespace Project_Server
                 button_Server_Start.BackColor = Color.DodgerBlue;
                 panel_Sever_Port.BackgroundImage = Properties.Resources.disconpic;
             }
-            /*
-            else if (textBox_Storage_Path.Text == "")
-            {
-                MessageBox.Show("경로가 선택되지 않았습니다. 경로를 다시 지정하십시오.", "Error", MessageBoxButtons.OK
-                    , MessageBoxIcon.Error);
-            }
-            */
             else if (button_Server_Start.Text.Equals("Connect"))
             {
                 //Socket 변수 초기화
@@ -931,8 +920,6 @@ namespace Project_Server
                 button_Server_Start.Text = "Disconnect";
                 button_Server_Start.BackColor = Color.OrangeRed;
                 panel_Sever_Port.BackgroundImage = Properties.Resources.conpic;
-                 //label_Server_Status.Text = "Running";
-                //this.label_Server_Status.ForeColor = Color.BlueViolet;
             }
         }
 

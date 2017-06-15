@@ -182,6 +182,10 @@
     <Content Include="Resources\img_Hwp.png" />
     <Content Include="Resources\img_Mp3.png" />
     <Content Include="Resources\img_Txt.png" />
+    <None Include="Resources\prev.jpg" />
+    <None Include="Resources\next.jpg" />
+    <None Include="Resources\nex.png" />
+    <None Include="Resources\pre.png" />
     <Content Include="Resources\project-icon.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

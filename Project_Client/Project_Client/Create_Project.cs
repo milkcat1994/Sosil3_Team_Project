@@ -19,9 +19,9 @@ namespace Project_Client
         public Create_Project()
         {
             InitializeComponent();
-            textBox_Project_Name.Text = "FourthProject";
-            textBox_Project_Start_Date.Text = "2017-05-12";
-            textBox_Project_End_Date.Text = "2017-06-13";
+            //textBox_Project_Name.Text = "FourthProject";
+            //textBox_Project_Start_Date.Text = "2017-05-12";
+            //textBox_Project_End_Date.Text = "2017-06-13";
         }
 
         private void button_Create_Project_Click(object sender, EventArgs e)

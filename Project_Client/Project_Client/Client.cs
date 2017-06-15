@@ -928,10 +928,9 @@ namespace Project_Client
         private void Form_Client_Load(object sender, EventArgs e)
         {
             //textBox_IP.Text = "192.168.43.97";
-            textBox_IP.Text = "192.168.1.108";
-            textBox_Port.Text = "7111";
-            textBox_ID.Text = "2013726007";
-            textBox_PW.Text = "1234";
+            //textBox_Port.Text = "7111";
+            //textBox_ID.Text = "2013726007";
+            //textBox_PW.Text = "1234";
             this.ClientSize = new System.Drawing.Size(280, 170);
             //this.ClientSize = new System.Drawing.Size(300, 230);
         }

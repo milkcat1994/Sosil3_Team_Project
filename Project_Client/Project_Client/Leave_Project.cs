@@ -19,7 +19,6 @@ namespace Project_Client
         public Leave_Project()
         {
             InitializeComponent();
-            textBox_Project_Name.Text = "ThirdProject";
         }
         
         private void button_Leave_Project_Click(object sender, EventArgs e)

@@ -19,7 +19,7 @@ namespace Project_Client
         public string[] end_Date;
         public bool flag;
         int month = 6;
-
+        
         int[] k = new int[35];
         
         FlowLayoutPanel[] f_list = new FlowLayoutPanel[35];
@@ -37,6 +37,7 @@ namespace Project_Client
         System.Windows.Forms.Label label;
         public Calender()
         {
+            
             InitializeComponent();
             //setting parent Form
             parent_Form = (Form_Client)this.Owner;
@@ -44,7 +45,7 @@ namespace Project_Client
             //end_Date = new string[30];
             flag = false;
             currentDay = 0;
-            label_Month.Text = "6월";
+            label_Month.Text = "June";
             f_list[0] = f1;          // flow_list
             f_list[1] = f2;
             f_list[2] = f3;
@@ -80,8 +81,9 @@ namespace Project_Client
             f_list[32] = f33;
             f_list[33] = f34;
             f_list[34] = f35;
+            
         }
-
+       
         private bool leapyear(int year)
         {
             return (year % 4 == 0) && ((year % 100 != 0) || (year%400 == 0));
@@ -95,17 +97,17 @@ namespace Project_Client
 
             if (month == 3)
             {
-                label_Month.Text = "3월";
+                label_Month.Text = "March";
                 panel_Calender.BackgroundImage = Project_Client.Properties.Resources.march;
             }
             else if (month == 4)
             {
-                label_Month.Text = "4월";
+                label_Month.Text = "April";
                 panel_Calender.BackgroundImage = Project_Client.Properties.Resources.april;
             }
             else if (month == 5)
             {
-                label_Month.Text = "5월";
+                label_Month.Text = "May";
                 panel_Calender.BackgroundImage = Project_Client.Properties.Resources.may;
             }
             else if (month < 3)
@@ -123,19 +125,19 @@ namespace Project_Client
 
             if (month == 6)
             {
-                label_Month.Text = "6월";
+                label_Month.Text = "June";
                 panel_Calender.BackgroundImage = Project_Client.Properties.Resources.june;
                 month = 6;
             }
             else if (month == 4)
             {
-                label_Month.Text = "4월";
+                label_Month.Text = "April";
                 panel_Calender.BackgroundImage = Project_Client.Properties.Resources.april;
 
             }
             else if (month == 5)
             {
-                label_Month.Text = "5월";
+                label_Month.Text = "May";
                 panel_Calender.BackgroundImage = Project_Client.Properties.Resources.may;
             }
             else if (month > 6)
@@ -208,7 +210,6 @@ namespace Project_Client
             currentDay %= 7;
             currentDay -= 1;
         }
-
         public void invalidate_panel(int[] k)  // 해당 달에 스케줄 그려주는 함수
         {
             int col_count = 0;
@@ -218,7 +219,7 @@ namespace Project_Client
             DateTime temp_date, temp_date2;
 
             Init_label();
-            
+
             for (int j = 0; j < dataGridView_Project_List.RowCount - 1; j++)
             {
                 temp_date = DateTime.Parse(dataGridView_Project_List.Rows[j].Cells[1].Value.ToString());
@@ -230,26 +231,9 @@ namespace Project_Client
                 finish_Month = temp_date2.Month;
 
                 //각 월 마다 시작, 끝 위치
-                int start_Point=0, end_Point=34;
+                int start_Point = 0, end_Point = 34;
                 calculate_Day();
-                /*
-                if (month == 3)
-                {
-                    start_Day = start_Day + 2;
-                    finish_Day = finish_Day + 2;
-                }
-                else if (month == 4)
-                {
-                    start_Day = start_Day + 5;
-                    finish_Day = finish_Day + 5;
-                }
-                else if (month == 6)
-                {
-                    start_Day = start_Day + 3;
-                    finish_Day = finish_Day + 3;
-                }
-                */
-                //4, 17, 4 , 17
+
                 start_Day += currentDay;
                 start_Point = start_Day;
                 finish_Day += currentDay;
@@ -260,7 +244,7 @@ namespace Project_Client
                 {
                     start_Point = currentDay;
                 }
-                if(month < finish_Month)
+                if (month < finish_Month)
                 {
                     end_Point = currentDay + day_In_Month[month];
                     if (end_Point > 35)
@@ -286,8 +270,8 @@ namespace Project_Client
                         if (k[m] == 1)
                         {
                             label_list1[m].Text = "             ";
-                            label_list1[m].BackColor = Color.Red;
-                            dataGridView_Project_List.Rows[0].Cells[4].Value = "RED";
+                            label_list1[m].BackColor = Color.DodgerBlue;
+                            dataGridView_Project_List.Rows[0].Cells[4].Value = "Blue";
                         }
                         else
                         {
@@ -304,8 +288,8 @@ namespace Project_Client
                         if (k[m] == 1)
                         {
                             label_list2[m].Text = "             ";
-                            label_list2[m].BackColor = Color.Blue;
-                            dataGridView_Project_List.Rows[1].Cells[4].Value = "BLUE";
+                            label_list2[m].BackColor = Color.LightSteelBlue;
+                            dataGridView_Project_List.Rows[1].Cells[4].Value = "lightBlue";
                         }
                         else
                         {
@@ -323,8 +307,8 @@ namespace Project_Client
                         if (k[m] == 1)
                         {
                             label_list3[m].Text = "             ";
-                            label_list3[m].BackColor = Color.Green;
-                            dataGridView_Project_List.Rows[2].Cells[4].Value = "GREEN";
+                            label_list3[m].BackColor = Color.LightPink;
+                            dataGridView_Project_List.Rows[2].Cells[4].Value = "Pink";
                         }
                         else
                         {
@@ -343,8 +327,8 @@ namespace Project_Client
                         if (k[m] == 1)
                         {
                             label_list4[m].Text = "             ";
-                            label_list4[m].BackColor = Color.Gray;
-                            dataGridView_Project_List.Rows[3].Cells[4].Value = "GRAY";
+                            label_list4[m].BackColor = Color.LightYellow;
+                            dataGridView_Project_List.Rows[3].Cells[4].Value = "Yellow";
                         }
                         else
                         {
@@ -357,39 +341,10 @@ namespace Project_Client
                 col_count++;
             }
         }
-
-        /*
-        public void receive_Date_Data(string[] start_Date, string[] end_Date)
-        {
-            this.start_Date = start_Date;
-            this.end_Date = end_Date;
-            DateTime sd, ed;
-            int a;
-
-            for(int i =0; i<start_Date.Length; i++)
-            {
-                sd = DateTime.Parse(start_Date[i]);
-                ed = DateTime.Parse(end_Date[i]);
-                if(sd.Year == currentYear && ed.Year == currentYear)
-                {
-                    if ((sd.Month <= month) && (month <= ed.Month))
-                    {
-                        MessageBox.Show("sd.Month : " + sd.Month + "month : " + month + "ed.Month : " + ed.Month);
-                        a = dataGridView_Project_List.Rows.Add();
-                        dataGridView_Project_List.Rows[a].Cells[0].Value = (a + 1).ToString();
-                        dataGridView_Project_List.Rows[a].Cells[1].Value = start_Date[i];
-                        dataGridView_Project_List.Rows[a].Cells[2].Value = end_Date[i];
-                        dataGridView_Project_List.Rows[a].Cells[3].Value = (DateTime.Parse(end_Date[i]) - DateTime.Now).ToString("dd");
-                    }
-                }
-            }
-            invalidate_panel(k);
-        }
-        */
+        
 
         private void Calender_Load(object sender, EventArgs e)
         {
-            //parent_Form.ParentFormSendEvent += new Form_Client.FormSendDataHandler(receive_Date_Data);
             this.FormSendEvent(currentYear, month);
             timer1.Start();
         }
@@ -423,5 +378,6 @@ namespace Project_Client
                 invalidate_panel(k);
             }
         }
+        
     }
 }

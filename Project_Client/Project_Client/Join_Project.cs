@@ -19,7 +19,6 @@ namespace Project_Client
         public Join_Project()
         {
             InitializeComponent();
-            textBox_Project_Name.Text = "ThirdProject";
         }
 
         private void button_Join_Project_Click(object sender, EventArgs e)
