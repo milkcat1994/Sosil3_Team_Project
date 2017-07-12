@@ -85,7 +85,6 @@ namespace Project_Server
                 if (ip.AddressFamily == AddressFamily.InterNetwork)
                 {
                     WanIP = ip.ToString();
-                    this.textBox_Down_Up_Load_Log.AppendText( WanIP + "\n" );
                     //break;
                 }
             }
@@ -192,11 +191,13 @@ namespace Project_Server
                 }
                 else if (dataType.Equals("File_DownLoad"))
                 {
+                    /*
                     //Task가 수행하는 함수 수정 해야함
                     Task File_DownLoad_Task = new Task(new Action(Send_Project_file));
                     File_DownLoad_Task.Start();
                     File_DownLoad_Task.Wait();
                     File_DownLoad_Task.Dispose();
+                    */
                 }
                 else if (dataType.Equals("Client UpLoad"))
                 {
@@ -311,7 +312,7 @@ namespace Project_Server
                 textBox_Down_Up_Load_Log.AppendText("Fname_" + dt.Rows[i]["Fname"] + "\n");
             }
         }
-
+        /*
         private void Send_Project_file()
         {
             //선택한 파일 이름, Pno를 클라이언트로 부터 받아서
@@ -358,7 +359,7 @@ namespace Project_Server
             }
             textBox_Down_Up_Load_Log.AppendText("Send Success ProjectStatus to Client\n");
         }
-
+        */
         private void Project_Open()
         {
             this.Invoke(new MethodInvoker(delegate ()
