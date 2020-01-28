@@ -86,3 +86,9 @@ D:\school\3\Linux\Project_최종\Project_Server\Project_Server\obj\Debug\Project
 D:\school\3\Linux\Project_최종\Project_Server\Project_Server\obj\Debug\Project_Server.exe
 D:\school\3\Linux\Project_최종\Project_Server\Project_Server\obj\Debug\Project_Server.pdb
 >>>>>>> 27eb08d8c43934a201c5bd80da10fcc2dab5a3b3
+H:\school\3\3-1\Linux\Sosil3_Team_Project\Project_Server\Project_Server\bin\Debug\Project_Server.exe.config
+H:\school\3\3-1\Linux\Sosil3_Team_Project\Project_Server\Project_Server\obj\Debug\Interop.NetFwTypeLib.dll
+H:\school\3\3-1\Linux\Sosil3_Team_Project\Project_Server\Project_Server\obj\Debug\Interop.Shell32.dll
+H:\school\3\3-1\Linux\Sosil3_Team_Project\Project_Server\Project_Server\obj\Debug\Project_Server.csproj.ResolveComReference.cache
+H:\school\3\3-1\Linux\Sosil3_Team_Project\Project_Server\Project_Server\obj\Debug\Project_Server.exe
+H:\school\3\3-1\Linux\Sosil3_Team_Project\Project_Server\Project_Server\obj\Debug\Project_Server.pdb

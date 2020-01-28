@@ -1,0 +1,12 @@
+D:\school\3\Linux\Sosil3_Team_Project\Project_Client\Project_Client\bin\Debug\Project_Client.exe.config
+D:\school\3\Linux\Sosil3_Team_Project\Project_Client\Project_Client\obj\Debug\Interop.NetFwTypeLib.dll
+D:\school\3\Linux\Sosil3_Team_Project\Project_Client\Project_Client\obj\Debug\Interop.Shell32.dll
+D:\school\3\Linux\Sosil3_Team_Project\Project_Client\Project_Client\obj\Debug\Project_Client.csproj.ResolveComReference.cache
+D:\school\3\Linux\Sosil3_Team_Project\Project_Client\Project_Client\bin\Debug\Project_Client.exe
+D:\school\3\Linux\Sosil3_Team_Project\Project_Client\Project_Client\bin\Debug\Project_Client.pdb
+D:\school\3\Linux\Sosil3_Team_Project\Project_Client\Project_Client\bin\Debug\Interop.Shell32.dll
+D:\school\3\Linux\Sosil3_Team_Project\Project_Client\Project_Client\obj\Debug\Project_Client.Form_Client.resources
+D:\school\3\Linux\Sosil3_Team_Project\Project_Client\Project_Client\obj\Debug\Project_Client.Properties.Resources.resources
+D:\school\3\Linux\Sosil3_Team_Project\Project_Client\Project_Client\obj\Debug\Project_Client.csproj.GenerateResource.Cache
+D:\school\3\Linux\Sosil3_Team_Project\Project_Client\Project_Client\obj\Debug\Project_Client.exe
+D:\school\3\Linux\Sosil3_Team_Project\Project_Client\Project_Client\obj\Debug\Project_Client.pdb

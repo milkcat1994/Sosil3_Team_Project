@@ -101,10 +101,6 @@ namespace Project_Server
                 if (ip.AddressFamily == AddressFamily.InterNetwork)
                 {
                     WanIP = ip.ToString();
-<<<<<<< HEAD
-                    //break;
-=======
->>>>>>> 27eb08d8c43934a201c5bd80da10fcc2dab5a3b3
                 }
             }
             return WanIP;
@@ -225,14 +221,11 @@ namespace Project_Server
                 }
                 else if (dataType.Equals("File_DownLoad"))
                 {
-<<<<<<< HEAD
                     /*
                     //Task가 수행하는 함수 수정 해야함
                     Task File_DownLoad_Task = new Task(new Action(Send_Project_file));
                     File_DownLoad_Task.Start();
-=======
                     var File_DownLoad_Task = Task<string>.Run(() => Send_Project_file(Client, streamR, streamW));
->>>>>>> 27eb08d8c43934a201c5bd80da10fcc2dab5a3b3
                     File_DownLoad_Task.Wait();
                     File_DownLoad_Task.Dispose();
                     */
@@ -510,13 +503,8 @@ namespace Project_Server
                 streamW.Flush();
             }
         }
-<<<<<<< HEAD
         /*
         private void Send_Project_file()
-=======
-
-        private void Send_Txt_File(string full_File_Path, Socket server_Socket, StreamWriter streamW)
->>>>>>> 27eb08d8c43934a201c5bd80da10fcc2dab5a3b3
         {
             FileStream fileReader = new FileStream(full_File_Path, FileMode.Open, FileAccess.Read);
 
@@ -608,14 +596,9 @@ namespace Project_Server
                 }
             }));
         }
-<<<<<<< HEAD
         */
-        private void Project_Open()
-=======
 
-        //---------------Requested UpLoad File to Client---------------//
-        private void UpLoad_File_Project(Socket server_Socket, StreamReader streamR, StreamWriter streamW)
->>>>>>> 27eb08d8c43934a201c5bd80da10fcc2dab5a3b3
+        private void Project_Open()
         {
             //추후 추가는 업로드자 게시
             this.Invoke(new MethodInvoker(delegate ()
